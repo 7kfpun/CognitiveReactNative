@@ -19,12 +19,13 @@ import AdmobCell from './app/admob';
 import { RNS3 } from 'react-native-aws3';
 import * as Animatable from 'react-native-animatable';
 import DeviceInfo from 'react-native-device-info';
+import GoogleAnalytics from 'react-native-google-analytics-bridge';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import ImageResizer from 'react-native-image-resizer';
 import Permissions from 'react-native-permissions';
+import Speech from 'react-native-speech';
 import Spinner from 'react-native-spinkit';
 import timer from 'react-native-timer';
-import GoogleAnalytics from 'react-native-google-analytics-bridge';
 
 import { config } from './config';
 
@@ -220,9 +221,16 @@ export default class Cognitive extends React.Component {
         //   JSON.stringify(json),
         //   [{ text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel' }]
         // );
+        const caption = json.description.captions[0].text;
         that.setState({
+          caption,
           status: 'UPLOADED',
-          caption: json.description.captions[0].text,
+        });
+
+        Speech.speak({
+          text: `Moo moo, I see ${caption}`,
+          voice: 'en-US',
+          rate: 0.3,
         });
         firebase.database().ref(`users/${uniqueID}/${filename}/describe`).set(json);
       } else {

@@ -25,6 +25,7 @@
 		161D332AB1754F62AD469DC8 /* EvilIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 005AD33495C4442791D3B9B8 /* EvilIcons.ttf */; };
 		34AA90E07AF5400D92E33F0C /* libRCTImageResizer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6832B609DC37456DABF5BF10 /* libRCTImageResizer.a */; };
 		3977DA25B78442FF9A748072 /* Octicons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 917C5A96B36041AD96A98E7A /* Octicons.ttf */; };
+		3CACEB07DCA0456795C73C3F /* libSpeechSynthesizer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D289E2E4CD6B402D8378D6CD /* libSpeechSynthesizer.a */; };
 		40256E6515A94801A7CB739E /* Zocial.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4B7606F7F04F43A995ABDCB9 /* Zocial.ttf */; };
 		4CF5257BB3714F64AD74BD5E /* libRNSpinkit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 85E506F65BBC4A50B806501B /* libRNSpinkit.a */; };
 		6C48F05A127E49959F31A599 /* libRNAdMobManager.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 520411C2E4614F74AF429F37 /* libRNAdMobManager.a */; };
@@ -182,6 +183,13 @@
 			remoteGlobalIDString = A79185C61C30694E001236A6;
 			remoteInfo = RCTGoogleAnalyticsBridge;
 		};
+		AAC0A1351D394D39005A0353 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 290E553FCD574C20A8FCD0AC /* SpeechSynthesizer.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 134814201AA4EA6300B7C361;
+			remoteInfo = SpeechSynthesizer;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -206,6 +214,7 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Cognitive/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = Cognitive/main.m; sourceTree = "<group>"; };
 		146833FF1AC3E56700842450 /* React.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = React.xcodeproj; path = "../node_modules/react-native/React/React.xcodeproj"; sourceTree = "<group>"; };
+		290E553FCD574C20A8FCD0AC /* SpeechSynthesizer.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = SpeechSynthesizer.xcodeproj; path = "../node_modules/react-native-speech/SpeechSynthesizer.xcodeproj"; sourceTree = "<group>"; };
 		42DBBAB461E540D29906CA16 /* RCTImageResizer.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTImageResizer.xcodeproj; path = "../node_modules/react-native-image-resizer/ios/RCTImageResizer.xcodeproj"; sourceTree = "<group>"; };
 		4B7606F7F04F43A995ABDCB9 /* Zocial.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Zocial.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Zocial.ttf"; sourceTree = "<group>"; };
 		4EF2D53CD37F4919BFA4B16F /* Entypo.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Entypo.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Entypo.ttf"; sourceTree = "<group>"; };
@@ -231,6 +240,7 @@
 		AAC0A10B1D39343A005A0353 /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
 		CD2DC40CA8BB4CB6BE0DA0B9 /* Ionicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Ionicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Ionicons.ttf"; sourceTree = "<group>"; };
 		CD79684A57D54E9E87B5A657 /* RNDeviceInfo.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNDeviceInfo.xcodeproj; path = "../node_modules/react-native-device-info/RNDeviceInfo.xcodeproj"; sourceTree = "<group>"; };
+		D289E2E4CD6B402D8378D6CD /* libSpeechSynthesizer.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libSpeechSynthesizer.a; sourceTree = "<group>"; };
 		E2496941DE9B4A008BB88A1B /* RNVectorIcons.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNVectorIcons.xcodeproj; path = "../node_modules/react-native-vector-icons/RNVectorIcons.xcodeproj"; sourceTree = "<group>"; };
 		EE4D809B2C394ACBB7C850C1 /* RNAdMobManager.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNAdMobManager.xcodeproj; path = "../node_modules/react-native-admob/ios/RNAdMobManager.xcodeproj"; sourceTree = "<group>"; };
 		EE64DAE934F5428D8829902D /* libRNDeviceInfo.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNDeviceInfo.a; sourceTree = "<group>"; };
@@ -274,6 +284,7 @@
 				6C48F05A127E49959F31A599 /* libRNAdMobManager.a in Frameworks */,
 				34AA90E07AF5400D92E33F0C /* libRCTImageResizer.a in Frameworks */,
 				8DC5AF97A5E34DE79101DFD7 /* libRCTGoogleAnalyticsBridge.a in Frameworks */,
+				3CACEB07DCA0456795C73C3F /* libSpeechSynthesizer.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -404,6 +415,7 @@
 				EE4D809B2C394ACBB7C850C1 /* RNAdMobManager.xcodeproj */,
 				42DBBAB461E540D29906CA16 /* RCTImageResizer.xcodeproj */,
 				F9A64F29904546359818FB98 /* RCTGoogleAnalyticsBridge.xcodeproj */,
+				290E553FCD574C20A8FCD0AC /* SpeechSynthesizer.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -505,6 +517,14 @@
 			isa = PBXGroup;
 			children = (
 				AAC0A0EF1D392973005A0353 /* libRCTGoogleAnalyticsBridge.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		AAC0A1201D394D39005A0353 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AAC0A1361D394D39005A0353 /* libSpeechSynthesizer.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -665,6 +685,10 @@
 					ProductGroup = AA27254D1D36C08F008EC16C /* Products */;
 					ProjectRef = E2496941DE9B4A008BB88A1B /* RNVectorIcons.xcodeproj */;
 				},
+				{
+					ProductGroup = AAC0A1201D394D39005A0353 /* Products */;
+					ProjectRef = 290E553FCD574C20A8FCD0AC /* SpeechSynthesizer.xcodeproj */;
+				},
 			);
 			projectRoot = "";
 			targets = (
@@ -801,6 +825,13 @@
 			remoteRef = AAC0A0EE1D392973005A0353 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
+		AAC0A1361D394D39005A0353 /* libSpeechSynthesizer.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libSpeechSynthesizer.a;
+			remoteRef = AAC0A1351D394D39005A0353 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
@@ -904,6 +935,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Cognitive.app/Cognitive";
@@ -920,6 +952,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -948,6 +981,7 @@
 					"$(SRCROOT)/../node_modules/react-native-admob/ios",
 					"$(SRCROOT)/../node_modules/react-native-image-resizer/ios/RCTImageResizer",
 					"$(SRCROOT)/../node_modules/react-native-google-analytics-bridge/ios/RCTGoogleAnalyticsBridge/**",
+					"$(SRCROOT)/../node_modules/react-native-speech",
 				);
 				INFOPLIST_FILE = Cognitive/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -982,6 +1016,7 @@
 					"$(SRCROOT)/../node_modules/react-native-admob/ios",
 					"$(SRCROOT)/../node_modules/react-native-image-resizer/ios/RCTImageResizer",
 					"$(SRCROOT)/../node_modules/react-native-google-analytics-bridge/ios/RCTGoogleAnalyticsBridge/**",
+					"$(SRCROOT)/../node_modules/react-native-speech",
 				);
 				INFOPLIST_FILE = Cognitive/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -1041,6 +1076,7 @@
 					"$(SRCROOT)/../node_modules/react-native-admob/ios",
 					"$(SRCROOT)/../node_modules/react-native-image-resizer/ios/RCTImageResizer",
 					"$(SRCROOT)/../node_modules/react-native-google-analytics-bridge/ios/RCTGoogleAnalyticsBridge/**",
+					"$(SRCROOT)/../node_modules/react-native-speech",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
@@ -1088,6 +1124,7 @@
 					"$(SRCROOT)/../node_modules/react-native-admob/ios",
 					"$(SRCROOT)/../node_modules/react-native-image-resizer/ios/RCTImageResizer",
 					"$(SRCROOT)/../node_modules/react-native-google-analytics-bridge/ios/RCTGoogleAnalyticsBridge/**",
+					"$(SRCROOT)/../node_modules/react-native-speech",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
