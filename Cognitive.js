@@ -419,7 +419,7 @@ export default class Cognitive extends React.Component {
                 this.camera = cam;
               }}
               style={styles.preview}
-              aspect={Camera.constants.Aspect.fit}
+              aspect={Camera.constants.Aspect.fill}
               captureAudio={false}
               captureQuality={Camera.constants.CaptureQuality.medium}
               captureTarget={Camera.constants.CaptureTarget.temp}
