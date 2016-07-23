@@ -28,6 +28,8 @@ import Spinner from 'react-native-spinkit';
 import timer from 'react-native-timer';
 import Camera from 'react-native-camera';
 
+import SleekLoadingIndicator from 'react-native-sleek-loading-indicator';
+
 import { config } from './config';
 
 GoogleAnalytics.setTrackerId(config.googleAnalytics[Platform.OS]);
@@ -357,6 +359,7 @@ export default class Cognitive extends React.Component {
             <TouchableHighlight style={styles.camera} onPress={() => this.setState({ mode: 'CAMERA' })}>
               <Icon name="photo-camera" style={styles.cameraIcon} size={26} color="white" />
             </TouchableHighlight>
+            <SleekLoadingIndicator loading={this.state.status === 'UPLOADING'} />
           </View>
 
           <View style={styles.footer}>
@@ -424,10 +427,10 @@ export default class Cognitive extends React.Component {
               captureQuality={Camera.constants.CaptureQuality.medium}
               captureTarget={Camera.constants.CaptureTarget.temp}
             />
-
             <TouchableHighlight style={styles.camera} onPress={() => this.setState({ mode: 'LIBRARY' })}>
               <Icon name="photo-library" style={styles.cameraIcon} size={26} color="white" />
             </TouchableHighlight>
+            <SleekLoadingIndicator loading={this.state.status === 'UPLOADING'} />
           </View>
 
           <View style={styles.footer}>
