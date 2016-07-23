@@ -26,6 +26,7 @@ import Permissions from 'react-native-permissions';  // eslint-disable-line impo
 import Speech from 'react-native-speech';
 import Spinner from 'react-native-spinkit';
 import timer from 'react-native-timer';
+import Camera from 'react-native-camera';
 
 import { config } from './config';
 
@@ -93,6 +94,25 @@ const styles = StyleSheet.create({
     color: '#424242',
     fontSize: 16,
   },
+  camera: {
+    position: 'absolute',
+    right: 20,
+    top: 30,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'white',
+    borderRadius: 5,
+    padding: 8,
+  },
+  cameraIcon: {
+    backgroundColor: 'transparent',
+  },
+  preview: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    height: Dimensions.get('window').height,
+    width: Dimensions.get('window').width,
+  },
 });
 
 export default class Cognitive extends React.Component {
@@ -101,6 +121,7 @@ export default class Cognitive extends React.Component {
     const ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
 
     this.state = {
+      mode: 'CAMERA',
       ds,
       key: Math.random(),
       dataSource: ds.cloneWithRows([{ uri: 'row 1' }, { uri: 'row 2' }]),
@@ -155,8 +176,13 @@ export default class Cognitive extends React.Component {
 
   uploadImage(uri) {
     let file;
-    const filename = /id=(.*)\&ext/i.exec(uri)[0].replace('id=', '').replace('&ext', '');  // eslint-disable-line no-useless-escape
-    if (uri.indexOf('JPG') || true) {  // eslint-disable-line no-constant-condition
+    let filename;
+    try {
+      filename = /id=(.*)\&ext/i.exec(uri)[0].replace('id=', '').replace('&ext', '');  // eslint-disable-line no-useless-escape
+    } catch (err) {
+      filename = uri.replace(/^.*[\\\/]/, '').replace('.jpg', '');
+    }
+    if (uri.indexOf('JPG')) {  // eslint-disable-line no-constant-condition
       file = {
         // uri,
         name: `${filename}.jpg`,
@@ -200,7 +226,12 @@ export default class Cognitive extends React.Component {
 
   cognitiveService(service, uri) {
     const s3Bucket = config.s3.uri;
-    const filename = /id=(.*)\&ext/i.exec(uri)[0].replace('id=', '').replace('&ext', '');  // eslint-disable-line no-useless-escape
+    let filename;
+    try {
+      filename = /id=(.*)\&ext/i.exec(uri)[0].replace('id=', '').replace('&ext', '');  // eslint-disable-line no-useless-escape
+    } catch (err) {
+      filename = uri.replace(/^.*[\\\/]/, '').replace('.jpg', '');
+    }
     let s3Url;
     if (uri.indexOf('JPG') || true) {  // eslint-disable-line no-constant-condition
       s3Url = `${s3Bucket}/uploads/${uniqueID}/${filename}.jpg`;
@@ -273,87 +304,182 @@ export default class Cognitive extends React.Component {
 
   render() {
     GoogleAnalytics.trackScreenView('Home');
-    return (
-      <View style={styles.container}>
-        <View style={styles.body}>
-          <ListView
-            ref="scrollView"
-            dataSource={this.state.dataSource}
-            renderRow={(rowData) => <View style={styles.slideContainer}>
-              <Image
-                style={[styles.image, { height: width * rowData.height / rowData.width }]}
-                source={{ uri: rowData.uri }}
-              />
-            </View>}
-            horizontal={true}
-            onScroll={(event) => {
-              if (event.nativeEvent.contentOffset.x < THRESHOLD) {
-                //
-              } else if (event.nativeEvent.contentOffset.x - OFFSETY > THRESHOLD) {
-                console.log('onScroll Right');
-              } else if (OFFSETY - event.nativeEvent.contentOffset.x > THRESHOLD) {
-                console.log('onScroll Left');
-              }
-              OFFSETY = event.nativeEvent.contentOffset.x;
-              console.log('currentSection', Math.round(event.nativeEvent.contentOffset.x / width));
-              if (this.state.status !== 'DENIED') {
-                this.setState({
-                  currentSection: event.nativeEvent.contentOffset.x > 0 ? Math.round(event.nativeEvent.contentOffset.x / width) : 0,
-                  // status: 'BEFORE_UPLOAD',
-                });
-              }
-            }}
-          />
-        </View>
-        <View style={styles.footer}>
-          <View style={styles.cowBlock}>
-            <Text style={styles.cow}>🐮</Text>
-            <TouchableHighlight
-              onPress={() => {
+    if (this.state.mode === 'LIBRARY') {
+      return (
+        <View style={styles.container}>
+          <View style={styles.body}>
+            <ListView
+              ref="scrollView"
+              dataSource={this.state.dataSource}
+              renderRow={(rowData) => <View style={styles.slideContainer}>
+                <Image
+                  style={[styles.image, { height: width * rowData.height / rowData.width }]}
+                  source={{ uri: rowData.uri }}
+                />
+              </View>}
+              horizontal={true}
+              onScroll={(event) => {
+                if (event.nativeEvent.contentOffset.x < THRESHOLD) {
+                  //
+                } else if (event.nativeEvent.contentOffset.x - OFFSETY > THRESHOLD) {
+                  console.log('onScroll Right');
+                } else if (OFFSETY - event.nativeEvent.contentOffset.x > THRESHOLD) {
+                  console.log('onScroll Left');
+                }
+                OFFSETY = event.nativeEvent.contentOffset.x;
+                console.log('currentSection', Math.round(event.nativeEvent.contentOffset.x / width));
                 if (this.state.status !== 'DENIED') {
-                  this.refs.scrollView.scrollTo({ x: width * this.state.currentSection });
-                  GoogleAnalytics.trackEvent('user-action', 'describe');
-                  this.uploadImage(this.state.media[this.state.currentSection].uri);
-                  this.setState({ status: 'UPLOADING' });
-                } else {
-                  this.requestPermission();
+                  this.setState({
+                    currentSection: event.nativeEvent.contentOffset.x > 0 ? Math.round(event.nativeEvent.contentOffset.x / width) : 0,
+                    // status: 'BEFORE_UPLOAD',
+                  });
                 }
               }}
-              style={styles.button}
-              underlayColor="#E0E0E0"
-            >
-              <View>
-              {(() => {
-                switch (this.state.status) {
-                  case 'DENIED': return (<Animatable.Text style={styles.text} animation="fadeIn">
-                    {'We need access to your photos.'}
-                  </Animatable.Text>);
-                  case 'BEFORE_UPLOAD': return (<Animatable.Text style={styles.text} animation="fadeIn">
-                    {'Click me to see what I sees.'}
-                  </Animatable.Text>);
-                  case 'UPLOADING': return <Spinner isVisible={true} size={20} type="Wave" color="#424242" />;
-                  case 'UPLOADED': return (<Animatable.Text style={styles.text} animation="fadeIn">
-                    {`I see ${this.state.caption}.`}
-                  </Animatable.Text>);
-                  default: return null;
-                }
-              })()}
-              </View>
-            </TouchableHighlight>
+            />
+            <View style={styles.camera}>
+              <Icon
+                name="photo-camera"
+                style={styles.cameraIcon}
+                size={26}
+                color="white"
+                onPress={() => this.setState({ mode: 'CAMERA' })}
+              />
+            </View>
           </View>
-          <View style={styles.flagBlock}>
-            {this.state.status === 'UPLOADED' &&
-              <Icon.Button
-                name="flag"
-                backgroundColor="#37474F"
-                size={12} onPress={
-                  () => this.report(this.state.media[this.state.currentSection].uri)
-                }
-              />}
+
+          <View style={styles.footer}>
+            <View style={styles.cowBlock}>
+              <Text style={styles.cow}>🐮</Text>
+              <TouchableHighlight
+                onPress={() => {
+                  if (this.state.status !== 'DENIED') {
+                    this.refs.scrollView.scrollTo({ x: width * this.state.currentSection });
+                    GoogleAnalytics.trackEvent('user-action', 'describe');
+                    this.uploadImage(this.state.media[this.state.currentSection].uri);
+                    this.setState({ status: 'UPLOADING' });
+                  } else {
+                    this.requestPermission();
+                  }
+                }}
+                style={styles.button}
+                underlayColor="#E0E0E0"
+              >
+                <View>
+                {(() => {
+                  switch (this.state.status) {
+                    case 'DENIED': return (<Animatable.Text style={styles.text} animation="fadeIn">
+                      {'We need access to your photos.'}
+                    </Animatable.Text>);
+                    case 'BEFORE_UPLOAD': return (<Animatable.Text style={styles.text} animation="fadeIn">
+                      {'Click me to see what I sees.'}
+                    </Animatable.Text>);
+                    case 'UPLOADING': return <Spinner isVisible={true} size={20} type="Wave" color="#424242" />;
+                    case 'UPLOADED': return (<Animatable.Text style={styles.text} animation="fadeIn">
+                      {`I see ${this.state.caption}.`}
+                    </Animatable.Text>);
+                    default: return null;
+                  }
+                })()}
+                </View>
+              </TouchableHighlight>
+            </View>
+            <View style={styles.flagBlock}>
+              {this.state.status === 'UPLOADED' &&
+                <Icon.Button
+                  name="flag"
+                  backgroundColor="#37474F"
+                  size={12}
+                  onPress={
+                    () => this.report(this.state.media[this.state.currentSection].uri)
+                  }
+                />}
+            </View>
           </View>
+          <AdmobCell />
         </View>
-        <AdmobCell />
-      </View>
-    );
+      );
+    } else if (this.state.mode === 'CAMERA') {
+      return (
+        <View style={styles.container}>
+          <View style={styles.body}>
+            <Camera
+              ref={(cam) => {
+                this.camera = cam;
+              }}
+              style={styles.preview}
+              aspect={Camera.constants.Aspect.fill}
+              captureAudio={false}
+              captureQuality={Camera.constants.CaptureQuality.medium}
+              captureTarget={Camera.constants.CaptureTarget.temp}
+            />
+
+            <View style={styles.camera}>
+              <Icon
+                name="photo-library"
+                style={styles.cameraIcon}
+                size={26}
+                color="white"
+                onPress={
+                  () => this.setState({ mode: 'LIBRARY' })
+                }
+              />
+            </View>
+          </View>
+
+          <View style={styles.footer}>
+            <View style={styles.cowBlock}>
+              <Text style={styles.cow}>🐮</Text>
+              <TouchableHighlight
+                onPress={() => {
+                  if (this.state.status !== 'DENIED') {
+                    GoogleAnalytics.trackEvent('user-action', 'take-photo');
+                    const that = this;
+                    this.camera.capture()
+                      .then((data) => {
+                        console.log(data);
+                        that.uploadImage(data.path);
+                      })
+                      .catch(err => console.error(err));
+                    this.setState({ status: 'UPLOADING' });
+                  } else {
+                    this.requestPermission();
+                  }
+                }}
+                style={styles.button}
+                underlayColor="#E0E0E0"
+              >
+                <View>
+                {(() => {
+                  switch (this.state.status) {
+                    case 'DENIED': return (<Animatable.Text style={styles.text} animation="fadeIn">
+                      {'We need access to your photos.'}
+                    </Animatable.Text>);
+                    case 'BEFORE_UPLOAD': return (<Animatable.Text style={styles.text} animation="fadeIn">
+                      {'Tap me to see what I sees.'}
+                    </Animatable.Text>);
+                    case 'UPLOADING': return <Spinner isVisible={true} size={20} type="Wave" color="#424242" />;
+                    case 'UPLOADED': return (<Animatable.Text style={styles.text} animation="fadeIn">
+                      {`I see ${this.state.caption}.`}
+                    </Animatable.Text>);
+                    default: return null;
+                  }
+                })()}
+                </View>
+              </TouchableHighlight>
+            </View>
+            <View style={styles.flagBlock}>
+              {this.state.status === 'UPLOADED' &&
+                <Icon.Button
+                  name="flag"
+                  backgroundColor="#37474F"
+                  size={12}
+                  onPress={() => this.report(this.state.media[this.state.currentSection].uri)}
+                />}
+            </View>
+          </View>
+          <AdmobCell />
+        </View>
+      );
+    }
   }
 }
