@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 
 // Components
-import AdmobCell from './app/admob';
+import AdmobCell from './app/components/admob';
 
 // 3rd party libraries
 import { RNS3 } from 'react-native-aws3';
@@ -21,15 +21,19 @@ import * as Animatable from 'react-native-animatable';
 import DeviceInfo from 'react-native-device-info';
 import GoogleAnalytics from 'react-native-google-analytics-bridge';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import ImageResizer from 'react-native-image-resizer';
-import Permissions from 'react-native-permissions';
+import ImageResizer from 'react-native-image-resizer';  // eslint-disable-line import/no-unresolved
+import Permissions from 'react-native-permissions';  // eslint-disable-line import/no-unresolved
 import Speech from 'react-native-speech';
 import Spinner from 'react-native-spinkit';
 import timer from 'react-native-timer';
 
 import { config } from './config';
 
-GoogleAnalytics.setTrackerId(config.googleAnalytics.ios);
+GoogleAnalytics.setTrackerId(config.googleAnalytics[Platform.OS]);
+
+if (DeviceInfo.getDeviceName() === 'iPhone Simulator') {
+  GoogleAnalytics.setDryRun(true);
+}
 
 import firebase from 'firebase';
 firebase.initializeApp(config.firebase);

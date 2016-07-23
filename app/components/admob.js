@@ -6,7 +6,7 @@ import {
   View,
 } from 'react-native';
 
-import { config } from './../config';
+import { config } from './../../config';
 const settings = config;
 
 // 3rd party libraries
