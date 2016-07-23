@@ -48,7 +48,7 @@ const THRESHOLD = Platform.OS === 'ios' ? 50 : 20;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#37474F',
   },
   body: {
     flex: 4,
@@ -65,7 +65,6 @@ const styles = StyleSheet.create({
   footer: {
     flex: 1,
     flexDirection: 'column',
-    backgroundColor: '#37474F',
   },
   cowBlock: {
     flex: 1,
@@ -110,7 +109,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     alignItems: 'center',
-    height: Dimensions.get('window').height,
     width: Dimensions.get('window').width,
   },
 });

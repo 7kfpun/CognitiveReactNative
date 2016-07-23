@@ -15,7 +15,6 @@
     "react-native-aws3": "0.0.1",
     "react-native-camera": "git+https://github.com/lwansbrough/react-native-camera.git",
     "react-native-device-info": "^0.9.3",
-    "react-native-firebase-analytics": "^1.0.4",
     "react-native-google-analytics-bridge": "^2.1.0",
     "react-native-image-resizer": "0.0.6",
     "react-native-permissions": "^0.1.0",
