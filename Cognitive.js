@@ -130,35 +130,53 @@ export default class Cognitive extends React.Component {
   }
 
   componentDidMount() {
-    Permissions.getPermissionStatus('photo')
-      .then(response => {
-        // response is one of: 'authorized', 'denied', 'restricted', or 'undetermined'
-        console.log('Photo permission status', response);
-        if (response !== 'authorized' && response !== 'undetermined') {
-          this.setState({ status: 'DENIED' });
-          this.requestPermission();
-        } else {
-          const that = this;
-          CameraRoll.getPhotos({
-            first: 5000,
-            assetType: 'Photos',
-          }).then((data) => {
-            const media = [];
-            data.edges.forEach(d => media.push({
-              uri: d.node.image.uri,
-              height: d.node.image.height,
-              width: d.node.image.width,
-              location: d.node.location,
-            }));
-            // console.log(media);
-            that.setState({
-              media,
-              key: Math.random(),
-              dataSource: this.state.ds.cloneWithRows(media),
-            });
-          }).catch(error => console.error(error));
-        }
-      });
+    if (Platform.OS === 'ios') {
+      Permissions.getPermissionStatus('photo')
+        .then(response => {
+          // response is one of: 'authorized', 'denied', 'restricted', or 'undetermined'
+          console.log('Photo permission status', response);
+          if (response !== 'authorized' && response !== 'undetermined') {
+            this.setState({ status: 'DENIED' });
+            this.requestPermission();
+          } else {
+            this.getPhotos();
+          }
+        });
+    } else {
+      this.getPhotos();
+    }
+  }
+
+  getPhotos() {
+    try {
+      const that = this;
+      CameraRoll.getPhotos({
+        first: 5000,
+        assetType: 'Photos',
+      }).then((data) => {
+        const media = [];
+        data.edges.forEach(d => media.push({
+          uri: d.node.image.uri,
+          height: d.node.image.height,
+          width: d.node.image.width,
+          location: d.node.location,
+        }));
+        console.log(media.slice(0, 3));
+        that.setState({
+          media,
+          key: Math.random(),
+          dataSource: this.state.ds.cloneWithRows(media),
+        });
+      }).catch(error => console.error(error));
+    } catch (err) {
+      Alert.alert(
+        'Cannot access your camera?',
+        'We need access so you can use the function.',
+        [
+          { text: 'Ok', onPress: () => console.log(), style: 'cancel' },
+        ]
+      );
+    }
   }
 
   requestPermission() {
@@ -207,7 +225,7 @@ export default class Cognitive extends React.Component {
           console.log(response);
           throw new Error('Failed to upload image to S3');
         }
-        console.log(response.body);
+        console.log('S3 uploaded', response.body);
       })
       .progress((e) => {
         console.log(e.loaded / e.total);
@@ -247,7 +265,7 @@ export default class Cognitive extends React.Component {
     })
     .then((response) => response.json())
     .then((json) => {
-      console.log(json);
+      console.log('Cognitive analytics', json);
       if (json.description && json.description.captions && json.description.captions.length > 0) {
         // Alert.alert(
         //   service.toUpperCase(),
@@ -260,14 +278,16 @@ export default class Cognitive extends React.Component {
           status: 'UPLOADED',
         });
 
-        Speech.speak({
-          text: `Moo moo, I see ${caption}`,
-          voice: 'en-US',
-          rate: 0.3,
-        });
+        if (Platform.OS === 'ios') {
+          Speech.speak({
+            text: `Moo moo, I see ${caption}`,
+            voice: 'en-US',
+            rate: 0.3,
+          });
+        }
         firebase.database().ref(`users/${uniqueID}/${filename}/describe`).set(json);
       } else {
-        console.log('RetryCognitiveService in 1 section.');
+        console.log('RetryCognitiveService in 1 second.');
         timer.setTimeout(that, 'RetryCognitiveService', () => that.cognitiveService(service, uri), 1000);
       }
     })
