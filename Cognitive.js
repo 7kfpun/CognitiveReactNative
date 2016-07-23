@@ -336,15 +336,9 @@ export default class Cognitive extends React.Component {
                 }
               }}
             />
-            <View style={styles.camera}>
-              <Icon
-                name="photo-camera"
-                style={styles.cameraIcon}
-                size={26}
-                color="white"
-                onPress={() => this.setState({ mode: 'CAMERA' })}
-              />
-            </View>
+            <TouchableHighlight style={styles.camera} onPress={() => this.setState({ mode: 'CAMERA' })}>
+              <Icon name="photo-camera" style={styles.cameraIcon} size={26} color="white" />
+            </TouchableHighlight>
           </View>
 
           <View style={styles.footer}>
@@ -407,23 +401,15 @@ export default class Cognitive extends React.Component {
                 this.camera = cam;
               }}
               style={styles.preview}
-              aspect={Camera.constants.Aspect.fill}
+              aspect={Camera.constants.Aspect.fit}
               captureAudio={false}
               captureQuality={Camera.constants.CaptureQuality.medium}
               captureTarget={Camera.constants.CaptureTarget.temp}
             />
 
-            <View style={styles.camera}>
-              <Icon
-                name="photo-library"
-                style={styles.cameraIcon}
-                size={26}
-                color="white"
-                onPress={
-                  () => this.setState({ mode: 'LIBRARY' })
-                }
-              />
-            </View>
+            <TouchableHighlight style={styles.camera} onPress={() => this.setState({ mode: 'LIBRARY' })}>
+              <Icon name="photo-library" style={styles.cameraIcon} size={26} color="white" />
+            </TouchableHighlight>
           </View>
 
           <View style={styles.footer}>
