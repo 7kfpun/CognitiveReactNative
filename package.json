@@ -5,7 +5,10 @@
   "scripts": {
     "start": "npm run override-modules && node node_modules/react-native/local-cli/cli.js start",
     "override-modules": "cp -rp override_node_modules/* node_modules",
-    "build-android": "cd android && ./gradlew assembleRelease && cd .."
+    "build-android": "cd android && ./gradlew assembleRelease && cd .. && npm run say-done",
+    "install-android": "npm run remove && cd android && ./gradlew installRelease && cd .. && npm run say-done",
+    "remove": "adb uninstall com.cognitive && adb uninstall com.kfpun.cognitive",
+    "say-done": "osascript -e 'display notification \"DONE!\" with title \"Android built\"'"
   },
   "dependencies": {
     "firebase": "^3.2.0",
