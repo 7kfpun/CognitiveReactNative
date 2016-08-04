@@ -11,29 +11,29 @@
     "say-done": "osascript -e 'display notification \"DONE!\" with title \"Android built\"'"
   },
   "dependencies": {
-    "firebase": "^3.2.0",
+    "firebase": "^3.2.1",
     "react": "15.2.1",
     "react-motion": "^0.4.4",
     "react-native": "^0.29.0",
     "react-native-admob": "^1.1.2",
     "react-native-animatable": "^0.6.1",
-    "react-native-aws3": "0.0.1",
+    "react-native-aws3": "0.0.2",
     "react-native-camera": "git+https://github.com/lwansbrough/react-native-camera.git",
     "react-native-device-info": "^0.9.3",
     "react-native-google-analytics-bridge": "^2.1.0",
     "react-native-image-resizer": "git+https://github.com/bamlab/react-native-image-resizer.git",
     "react-native-permissions": "^0.1.0",
-    "react-native-sleek-loading-indicator": "^0.1.1",
+    "react-native-sleek-loading-indicator": "^0.1.2",
     "react-native-speech": "^0.1.2",
     "react-native-spinkit": "^0.1.2",
     "react-native-timer": "^1.1.2",
     "react-native-vector-icons": "^2.0.3"
   },
   "devDependencies": {
-    "eslint": "^2.12.0",
+    "eslint": "^3.2.2",
     "eslint-config-airbnb": "^9.0.1",
-    "eslint-plugin-import": "^1.8.1",
-    "eslint-plugin-jsx-a11y": "^1.4.2",
-    "eslint-plugin-react": "^5.1.1"
+    "eslint-plugin-import": "^1.12.0",
+    "eslint-plugin-jsx-a11y": "^2.0.1",
+    "eslint-plugin-react": "^6.0.0"
   }
 }
