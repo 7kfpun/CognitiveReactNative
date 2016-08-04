@@ -10,6 +10,7 @@ import {
   Text,
   // ToastAndroid,
   TouchableHighlight,
+  Vibration,
   View,
 } from 'react-native';
 
@@ -26,7 +27,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import ImageResizer from 'react-native-image-resizer';  // eslint-disable-line import/no-unresolved
 import Permissions from 'react-native-permissions';  // eslint-disable-line import/no-unresolved
 import SleekLoadingIndicator from 'react-native-sleek-loading-indicator';
-// import Speech from 'react-native-speech';
+import Speech from 'react-native-speech';
 import Spinner from 'react-native-spinkit';
 import timer from 'react-native-timer';
 
@@ -50,7 +51,6 @@ const THRESHOLD = Platform.OS === 'ios' ? 50 : 20;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#37474F',
   },
   body: {
     flex: 4,
@@ -292,7 +292,13 @@ export default class Cognitive extends React.Component {
             rate: 0.3,
           });
         }
+
+        Vibration.vibrate();
         firebase.database().ref(`users/${uniqueID}/${filename}/describe`).set(json);
+
+        firebase.database().ref(`app/img/${filename}/timestamp`).set(new Date().getTime());
+        firebase.database().ref(`app/img/${filename}/uniqueID`).set(uniqueID);
+        firebase.database().ref(`app/describe/${filename}`).set(json);
       } else {
         console.log('RetryCognitiveService in 1 second.');
         // ToastAndroid.show('Cognitive retry', ToastAndroid.SHORT);
@@ -302,30 +308,6 @@ export default class Cognitive extends React.Component {
     .catch((error) => {
       console.warn(error);
     });
-  }
-
-  report(uri) {
-    const filename = /id=(.*)\&ext/i.exec(uri)[0].replace('id=', '').replace('&ext', '');  // eslint-disable-line no-useless-escape
-    Alert.alert(
-      'Report',
-      '',
-      [
-        {
-          text: 'Not accurate', onPress: () => {
-            console.log('Not accurate');
-            firebase.database().ref(`users/${uniqueID}/${filename}/isNotAccurate`).set(true);
-          },
-        },
-        {
-          text: 'Abuse content',
-          onPress: () => {
-            console.log('Abuse content');
-            firebase.database().ref(`users/${uniqueID}/${filename}/isAbuseContent`).set(true);
-          },
-        },
-        { text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel' },
-      ]
-    );
   }
 
   render() {
@@ -404,18 +386,8 @@ export default class Cognitive extends React.Component {
                 </View>
               </TouchableHighlight>
             </View>
-            <View style={styles.flagBlock}>
-              {this.state.status === 'UPLOADED' &&
-                <Icon.Button
-                  name="flag"
-                  backgroundColor="#37474F"
-                  size={12}
-                  onPress={
-                    () => this.report(this.state.media[this.state.currentSection].uri)
-                  }
-                />}
-            </View>
           </View>
+
           <AdmobCell />
         </View>
       );
@@ -480,16 +452,8 @@ export default class Cognitive extends React.Component {
                 </View>
               </TouchableHighlight>
             </View>
-            <View style={styles.flagBlock}>
-              {this.state.status === 'UPLOADED' &&
-                <Icon.Button
-                  name="flag"
-                  backgroundColor="#37474F"
-                  size={12}
-                  onPress={() => this.report(this.state.media[this.state.currentSection].uri)}
-                />}
-            </View>
           </View>
+
           <AdmobCell />
         </View>
       );
