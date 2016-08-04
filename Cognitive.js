@@ -8,6 +8,7 @@ import {
   Platform,
   StyleSheet,
   Text,
+  // ToastAndroid,
   TouchableHighlight,
   View,
 } from 'react-native';
@@ -18,17 +19,16 @@ import AdmobCell from './app/components/admob';
 // 3rd party libraries
 import { RNS3 } from 'react-native-aws3';
 import * as Animatable from 'react-native-animatable';
+import Camera from 'react-native-camera';
 import DeviceInfo from 'react-native-device-info';
 import GoogleAnalytics from 'react-native-google-analytics-bridge';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import ImageResizer from 'react-native-image-resizer';  // eslint-disable-line import/no-unresolved
 import Permissions from 'react-native-permissions';  // eslint-disable-line import/no-unresolved
-import Speech from 'react-native-speech';
+import SleekLoadingIndicator from 'react-native-sleek-loading-indicator';
+// import Speech from 'react-native-speech';
 import Spinner from 'react-native-spinkit';
 import timer from 'react-native-timer';
-import Camera from 'react-native-camera';
-
-import SleekLoadingIndicator from 'react-native-sleek-loading-indicator';
 
 import { config } from './config';
 
@@ -222,12 +222,15 @@ export default class Cognitive extends React.Component {
       console.log('resizedImageUri', resizedImageUri);
       file.uri = resizedImageUri;
 
+      // ToastAndroid.show('Image resized', ToastAndroid.SHORT);
+
       RNS3.put(file, options).then(response => {
         if (response.status !== 201) {
           console.log(response);
           throw new Error('Failed to upload image to S3');
         }
         console.log('S3 uploaded', response.body);
+        // ToastAndroid.show('S3 uploaded', ToastAndroid.SHORT);
       })
       .progress((e) => {
         console.log(e.loaded / e.total);
@@ -257,6 +260,7 @@ export default class Cognitive extends React.Component {
       s3Url = `${s3Bucket}/uploads/${uniqueID}/${filename}.png`;
     }
 
+    // ToastAndroid.show('Cognitive started', ToastAndroid.SHORT);
     const that = this;
     fetch(`https://api.projectoxford.ai/vision/v1.0/${service}`, {
       method: 'POST',
@@ -279,6 +283,7 @@ export default class Cognitive extends React.Component {
           caption,
           status: 'UPLOADED',
         });
+        // ToastAndroid.show('Cognitive done', ToastAndroid.SHORT);
 
         if (Platform.OS === 'ios') {
           Speech.speak({
@@ -290,7 +295,8 @@ export default class Cognitive extends React.Component {
         firebase.database().ref(`users/${uniqueID}/${filename}/describe`).set(json);
       } else {
         console.log('RetryCognitiveService in 1 second.');
-        timer.setTimeout(that, 'RetryCognitiveService', () => that.cognitiveService(service, uri), 1000);
+        // ToastAndroid.show('Cognitive retry', ToastAndroid.SHORT);
+        timer.setTimeout(that, 'RetryCognitiveService', () => that.uploadImage(uri), 1000);
       }
     })
     .catch((error) => {
