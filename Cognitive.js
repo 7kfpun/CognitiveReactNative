@@ -26,6 +26,7 @@ import GoogleAnalytics from 'react-native-google-analytics-bridge';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import ImageResizer from 'react-native-image-resizer';  // eslint-disable-line import/no-unresolved
 import Permissions from 'react-native-permissions';  // eslint-disable-line import/no-unresolved
+import Share from 'react-native-share';
 import SleekLoadingIndicator from 'react-native-sleek-loading-indicator';
 import Speech from 'react-native-speech';
 import Spinner from 'react-native-spinkit';
@@ -107,6 +108,16 @@ const styles = StyleSheet.create({
   cameraIcon: {
     backgroundColor: 'transparent',
   },
+  capture: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'white',
+    borderRadius: 12,
+    padding: 10,
+    width: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   preview: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -118,13 +129,11 @@ const styles = StyleSheet.create({
 export default class Cognitive extends React.Component {
   constructor(props) {
     super(props);
-    const ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
 
     this.state = {
       mode: 'CAMERA',
-      ds,
       key: Math.random(),
-      dataSource: ds.cloneWithRows([{ uri: 'row 1' }, { uri: 'row 2' }]),
+      dataSource: new ListView.DataSource({ rowHasChanged: (row1, row2) => row1 !== row2 }),
       status: 'BEFORE_UPLOAD',
       caption: 'caption',
       currentSection: 0,
@@ -167,7 +176,7 @@ export default class Cognitive extends React.Component {
         that.setState({
           media,
           key: Math.random(),
-          dataSource: this.state.ds.cloneWithRows(media),
+          dataSource: this.state.dataSource.cloneWithRows(media),
         });
       }).catch(error => console.error(error));
     } catch (err) {
@@ -202,13 +211,13 @@ export default class Cognitive extends React.Component {
     }
     if (uri.indexOf('JPG')) {  // eslint-disable-line no-constant-condition
       file = {
-        // uri,
+        uri,
         name: `${filename}.jpg`,
         type: 'image/jpg',
       };
     } else {
       file = {
-        // uri,
+        uri,
         name: `${filename}.png`,
         type: 'image/png',
       };
@@ -218,9 +227,9 @@ export default class Cognitive extends React.Component {
     const options = Object.assign(config.s3, { keyPrefix: `uploads/${uniqueID}/` });
     const that = this;
 
-    ImageResizer.createResizedImage(uri, 500, 500, 'JPEG', 40).then((resizedImageUri) => {
-      console.log('resizedImageUri', resizedImageUri);
-      file.uri = resizedImageUri;
+    // ImageResizer.createResizedImage(uri, 500, 500, 'JPEG', 40).then((resizedImageUri) => {
+    //   console.log('resizedImageUri', resizedImageUri);
+    //   file.uri = resizedImageUri;
 
       // ToastAndroid.show('Image resized', ToastAndroid.SHORT);
 
@@ -240,9 +249,9 @@ export default class Cognitive extends React.Component {
           that.cognitiveService('describe', uri);
         }
       });
-    }).catch((err) => {
-      console.log('ImageResizer', err);
-    });
+    // }).catch((err) => {
+    //   console.log('ImageResizer', err);
+    // });
   }
 
   cognitiveService(service, uri) {
@@ -310,6 +319,16 @@ export default class Cognitive extends React.Component {
     });
   }
 
+  shareImage(url, message) {
+    const shareImageBase64 = {
+      url,
+      message,
+      title: 'React Native',
+      subject: 'Share Link',
+    };
+    Share.open(shareImageBase64);
+  }
+
   render() {
     GoogleAnalytics.trackScreenView('Home');
     if (this.state.mode === 'LIBRARY') {
@@ -344,7 +363,7 @@ export default class Cognitive extends React.Component {
                 }
               }}
             />
-            <TouchableHighlight style={styles.camera} onPress={() => this.setState({ mode: 'CAMERA' })}>
+            <TouchableHighlight style={styles.camera} onPress={() => this.setState({ mode: 'CAMERA', status: 'BEFORE_UPLOAD' })}>
               <Icon name="photo-camera" style={styles.cameraIcon} size={26} color="white" />
             </TouchableHighlight>
             <SleekLoadingIndicator loading={this.state.status === 'UPLOADING'} />
@@ -374,7 +393,7 @@ export default class Cognitive extends React.Component {
                       {'We need access to your photos.'}
                     </Animatable.Text>);
                     case 'BEFORE_UPLOAD': return (<Animatable.Text style={styles.text} animation="fadeIn">
-                      {'Click me to see what I sees.'}
+                      {'Tap me to see what I see.'}
                     </Animatable.Text>);
                     case 'UPLOADING': return <Spinner isVisible={true} size={20} type="Wave" color="#424242" />;
                     case 'UPLOADED': return (<Animatable.Text style={styles.text} animation="fadeIn">
@@ -405,7 +424,7 @@ export default class Cognitive extends React.Component {
               captureQuality={Camera.constants.CaptureQuality.medium}
               captureTarget={Camera.constants.CaptureTarget.temp}
             />
-            <TouchableHighlight style={styles.camera} onPress={() => this.setState({ mode: 'LIBRARY' })}>
+            <TouchableHighlight style={styles.camera} onPress={() => this.setState({ mode: 'LIBRARY', status: 'BEFORE_UPLOAD' })}>
               <Icon name="photo-library" style={styles.cameraIcon} size={26} color="white" />
             </TouchableHighlight>
             <SleekLoadingIndicator loading={this.state.status === 'UPLOADING'} />
@@ -423,6 +442,7 @@ export default class Cognitive extends React.Component {
                       .then((data) => {
                         console.log(data);
                         that.uploadImage(data.path);
+                        that.setState({ url: data.path });
                       })
                       .catch(err => console.error(err));
                     this.setState({ status: 'UPLOADING' });
@@ -440,7 +460,7 @@ export default class Cognitive extends React.Component {
                       {'We need access to your photos.'}
                     </Animatable.Text>);
                     case 'BEFORE_UPLOAD': return (<Animatable.Text style={styles.text} animation="fadeIn">
-                      {'Tap me to see what I sees.'}
+                      {'Tap me to see what I see.'}
                     </Animatable.Text>);
                     case 'UPLOADING': return <Spinner isVisible={true} size={20} type="Wave" color="#424242" />;
                     case 'UPLOADED': return (<Animatable.Text style={styles.text} animation="fadeIn">
