@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  // ToastAndroid,
   Alert,
   CameraRoll,
   Dimensions,
@@ -8,14 +9,12 @@ import {
   Platform,
   StyleSheet,
   Text,
-  // ToastAndroid,
   TouchableHighlight,
   Vibration,
   View,
 } from 'react-native';
 
-// Components
-import AdmobCell from './app/components/admob';
+import firebase from 'firebase';
 
 // 3rd party libraries
 import { RNS3 } from 'react-native-aws3';
@@ -24,23 +23,27 @@ import Camera from 'react-native-camera';
 import DeviceInfo from 'react-native-device-info';
 import GoogleAnalytics from 'react-native-google-analytics-bridge';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import ImageResizer from 'react-native-image-resizer';  // eslint-disable-line import/no-unresolved
+// import ImageResizer from 'react-native-image-resizer';  // eslint-disable-line import/no-unresolved
 import Permissions from 'react-native-permissions';  // eslint-disable-line import/no-unresolved
 import Share from 'react-native-share';
 import SleekLoadingIndicator from 'react-native-sleek-loading-indicator';
 import Speech from 'react-native-speech';
-import Spinner from 'react-native-spinkit';
 import timer from 'react-native-timer';
+
+// Components
+import AdmobCell from './app/components/admob';
 
 import { config } from './config';
 
 GoogleAnalytics.setTrackerId(config.googleAnalytics[Platform.OS]);
 
-if (DeviceInfo.getDeviceName() === 'iPhone Simulator') {
+if (DeviceInfo.getDeviceName() === 'iPhone Simulator'
+  || DeviceInfo.getDeviceName() === 'apple’s MacBook Pro'
+  || DeviceInfo.getManufacturer() === 'Genymotion') {
+  console.log('GoogleAnalytics setDryRun');
   GoogleAnalytics.setDryRun(true);
 }
 
-import firebase from 'firebase';
 firebase.initializeApp(config.firebase);
 
 const { width } = Dimensions.get('window');
@@ -52,10 +55,12 @@ const THRESHOLD = Platform.OS === 'ios' ? 50 : 20;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: 'black',
   },
   body: {
-    flex: 4,
-    backgroundColor: 'black',
+    justifyContent: 'center',
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height - 50,
   },
   image: {
     width,
@@ -64,24 +69,6 @@ const styles = StyleSheet.create({
   slideContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  footer: {
-    flex: 1,
-    flexDirection: 'column',
-  },
-  cowBlock: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  flagBlock: {
-    position: 'absolute',
-    right: 0,
-    bottom: 0,
-  },
-  cow: {
-    fontSize: 68,
-    margin: 5,
   },
   button: {
     flex: 3,
@@ -93,36 +80,57 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   text: {
-    color: '#424242',
-    fontSize: 16,
+    color: 'white',
+    fontSize: 18,
+    textAlign: 'center',
   },
-  camera: {
+  changeModeButton: {
     position: 'absolute',
     right: 20,
     top: 30,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: StyleSheet.hairlineWidth * 5,
     borderColor: 'white',
     borderRadius: 5,
     padding: 8,
   },
-  cameraIcon: {
+  infoButton: {
+    position: 'absolute',
+    left: 20,
+    top: 30,
+    borderWidth: StyleSheet.hairlineWidth * 5,
+    borderColor: 'white',
+    borderRadius: 5,
+    padding: 8,
+  },
+  cameraButton: {
+    flex: 1,
+    position: 'absolute',
+    bottom: 0,
+  },
+  icon: {
     backgroundColor: 'transparent',
   },
-  capture: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'white',
-    borderRadius: 12,
-    padding: 10,
-    width: 80,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
+  cameraOptionIcon: {
+    backgroundColor: 'transparent',
+    padding: 30,
   },
   preview: {
     flex: 1,
     justifyContent: 'flex-end',
-    alignItems: 'center',
+  },
+  uploadImageBlock: {
+    position: 'absolute',
+    bottom: 0,
     width: Dimensions.get('window').width,
+  },
+  textBox: {
+    height: 100,
+    margin: 20,
+    padding: 20,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 5,
   },
 });
 
@@ -131,11 +139,14 @@ export default class Cognitive extends React.Component {
     super(props);
 
     this.state = {
-      mode: 'CAMERA',
+      mode: 'LIBRARY',
+      // mode: 'CAMERA',
+      isFlashOn: false,
+      isCameraFront: false,
       key: Math.random(),
       dataSource: new ListView.DataSource({ rowHasChanged: (row1, row2) => row1 !== row2 }),
       status: 'BEFORE_UPLOAD',
-      caption: 'caption',
+      caption: null,
       currentSection: 0,
     };
   }
@@ -143,7 +154,7 @@ export default class Cognitive extends React.Component {
   componentDidMount() {
     if (Platform.OS === 'ios') {
       Permissions.getPermissionStatus('photo')
-        .then(response => {
+        .then((response) => {
           // response is one of: 'authorized', 'denied', 'restricted', or 'undetermined'
           console.log('Photo permission status', response);
           if (response !== 'authorized' && response !== 'undetermined') {
@@ -162,7 +173,7 @@ export default class Cognitive extends React.Component {
     try {
       const that = this;
       CameraRoll.getPhotos({
-        first: 5000,
+        first: 100,
         assetType: 'Photos',
       }).then((data) => {
         const media = [];
@@ -233,22 +244,22 @@ export default class Cognitive extends React.Component {
 
       // ToastAndroid.show('Image resized', ToastAndroid.SHORT);
 
-      RNS3.put(file, options).then(response => {
-        if (response.status !== 201) {
-          console.log(response);
-          throw new Error('Failed to upload image to S3');
-        }
-        console.log('S3 uploaded', response.body);
-        // ToastAndroid.show('S3 uploaded', ToastAndroid.SHORT);
-      })
-      .progress((e) => {
-        console.log(e.loaded / e.total);
-        if (e.loaded / e.total < 1) {
-          that.setState({ status: 'UPLOADING' });
-        } else if (e.loaded / e.total === 1) {
-          that.cognitiveService('describe', uri);
-        }
-      });
+    RNS3.put(file, options).then((response) => {
+      if (response.status !== 201) {
+        console.log(response);
+        throw new Error('Failed to upload image to S3');
+      }
+      console.log('S3 uploaded', response.body);
+      // ToastAndroid.show('S3 uploaded', ToastAndroid.SHORT);
+    })
+    .progress((e) => {
+      console.log(e.loaded / e.total);
+      if (e.loaded / e.total < 1) {
+        that.setState({ status: 'UPLOADING' });
+      } else if (e.loaded / e.total === 1) {
+        that.cognitiveService('describe', uri);
+      }
+    });
     // }).catch((err) => {
     //   console.log('ImageResizer', err);
     // });
@@ -271,14 +282,14 @@ export default class Cognitive extends React.Component {
 
     // ToastAndroid.show('Cognitive started', ToastAndroid.SHORT);
     const that = this;
-    fetch(`https://api.projectoxford.ai/vision/v1.0/${service}`, {
+    fetch(`https://api.projectoxford.ai/vision/v1.0/${service}`, {  // eslint-disable-line no-undef
       method: 'POST',
       headers: Object.assign({ 'Content-Type': 'application/json' }, config.cognitive),
       body: JSON.stringify({
         url: s3Url,
       }),
     })
-    .then((response) => response.json())
+    .then(response => response.json())
     .then((json) => {
       console.log('Cognitive analytics', json);
       if (json.description && json.description.captions && json.description.captions.length > 0) {
@@ -296,9 +307,9 @@ export default class Cognitive extends React.Component {
 
         if (Platform.OS === 'ios') {
           Speech.speak({
-            text: `Moo moo, I see ${caption}`,
+            text: caption,
             voice: 'en-US',
-            rate: 0.3,
+            rate: 0.5,
           });
         }
 
@@ -338,9 +349,9 @@ export default class Cognitive extends React.Component {
             <ListView
               ref="scrollView"
               dataSource={this.state.dataSource}
-              renderRow={(rowData) => <View style={styles.slideContainer}>
+              renderRow={rowData => <View style={styles.slideContainer}>
                 <Image
-                  style={[styles.image, { height: width * rowData.height / rowData.width }]}
+                  style={[styles.image, { height: (width * rowData.height) / rowData.width }]}
                   source={{ uri: rowData.uri }}
                 />
               </View>}
@@ -358,54 +369,42 @@ export default class Cognitive extends React.Component {
                 if (this.state.status !== 'DENIED') {
                   this.setState({
                     currentSection: event.nativeEvent.contentOffset.x > 0 ? Math.round(event.nativeEvent.contentOffset.x / width) : 0,
-                    // status: 'BEFORE_UPLOAD',
+                    status: 'BEFORE_UPLOAD',
                   });
                 }
               }}
             />
-            <TouchableHighlight style={styles.camera} onPress={() => this.setState({ mode: 'CAMERA', status: 'BEFORE_UPLOAD' })}>
-              <Icon name="photo-camera" style={styles.cameraIcon} size={26} color="white" />
+            <TouchableHighlight style={styles.infoButton} onPress={() => this.setState({ mode: 'CAMERA', status: 'BEFORE_UPLOAD' })}>
+              <Icon name="info-outline" style={styles.icon} size={26} color="white" />
             </TouchableHighlight>
-            <SleekLoadingIndicator loading={this.state.status === 'UPLOADING'} />
+            <TouchableHighlight style={styles.changeModeButton} onPress={() => this.setState({ mode: 'CAMERA', status: 'BEFORE_UPLOAD' })}>
+              <Icon name="photo-camera" style={styles.icon} size={26} color="white" />
+            </TouchableHighlight>
+
+            <TouchableHighlight
+              onPress={() => {
+                if (this.state.status !== 'DENIED') {
+                  this.refs.scrollView.scrollTo({ x: width * this.state.currentSection });
+                  GoogleAnalytics.trackEvent('user-action', 'describe');
+                  this.uploadImage(this.state.media[this.state.currentSection].uri);
+                  this.setState({ status: 'UPLOADING' });
+                } else {
+                  this.requestPermission();
+                }
+              }}
+            >
+              <View style={styles.uploadImageBlock}>
+                {this.state.caption && this.state.status === 'UPLOADED' && <Animatable.View style={styles.textBox} animation="fadeIn">
+                  <Text style={styles.text}>{this.state.caption}</Text>
+                </Animatable.View>}
+                <View style={{ marginBottom: 30, justifyContent: 'center', alignItems: 'center', flexDirection: 'row' }}>
+                  <Icon name="touch-app" style={styles.icon} size={72} color="white" />
+                </View>
+              </View>
+            </TouchableHighlight>
           </View>
 
-          <View style={styles.footer}>
-            <View style={styles.cowBlock}>
-              <Text style={styles.cow}>🐮</Text>
-              <TouchableHighlight
-                onPress={() => {
-                  if (this.state.status !== 'DENIED') {
-                    this.refs.scrollView.scrollTo({ x: width * this.state.currentSection });
-                    GoogleAnalytics.trackEvent('user-action', 'describe');
-                    this.uploadImage(this.state.media[this.state.currentSection].uri);
-                    this.setState({ status: 'UPLOADING' });
-                  } else {
-                    this.requestPermission();
-                  }
-                }}
-                style={styles.button}
-                underlayColor="#E0E0E0"
-              >
-                <View>
-                {(() => {
-                  switch (this.state.status) {
-                    case 'DENIED': return (<Animatable.Text style={styles.text} animation="fadeIn">
-                      {'We need access to your photos.'}
-                    </Animatable.Text>);
-                    case 'BEFORE_UPLOAD': return (<Animatable.Text style={styles.text} animation="fadeIn">
-                      {'Tap me to see what I see.'}
-                    </Animatable.Text>);
-                    case 'UPLOADING': return <Spinner isVisible={true} size={20} type="Wave" color="#424242" />;
-                    case 'UPLOADED': return (<Animatable.Text style={styles.text} animation="fadeIn">
-                      {`I see ${this.state.caption}.`}
-                    </Animatable.Text>);
-                    default: return null;
-                  }
-                })()}
-                </View>
-              </TouchableHighlight>
-            </View>
-          </View>
+          <SleekLoadingIndicator loading={this.state.status === 'UPLOADING'} />
 
           <AdmobCell />
         </View>
@@ -413,67 +412,71 @@ export default class Cognitive extends React.Component {
     } else if (this.state.mode === 'CAMERA') {
       return (
         <View style={styles.container}>
-          <View style={styles.body}>
-            <Camera
-              ref={(cam) => {
-                this.camera = cam;
-              }}
-              style={styles.preview}
-              aspect={Camera.constants.Aspect.fill}
-              captureAudio={false}
-              captureQuality={Camera.constants.CaptureQuality.medium}
-              captureTarget={Camera.constants.CaptureTarget.temp}
-            />
-            <TouchableHighlight style={styles.camera} onPress={() => this.setState({ mode: 'LIBRARY', status: 'BEFORE_UPLOAD' })}>
-              <Icon name="photo-library" style={styles.cameraIcon} size={26} color="white" />
-            </TouchableHighlight>
-            <SleekLoadingIndicator loading={this.state.status === 'UPLOADING'} />
-          </View>
-
-          <View style={styles.footer}>
-            <View style={styles.cowBlock}>
-              <Text style={styles.cow}>🐮</Text>
-              <TouchableHighlight
-                onPress={() => {
-                  if (this.state.status !== 'DENIED') {
-                    GoogleAnalytics.trackEvent('user-action', 'take-photo');
-                    const that = this;
-                    this.camera.capture()
-                      .then((data) => {
-                        console.log(data);
-                        that.uploadImage(data.path);
-                        that.setState({ url: data.path });
-                      })
-                      .catch(err => console.error(err));
-                    this.setState({ status: 'UPLOADING' });
-                  } else {
-                    this.requestPermission();
-                  }
+          <TouchableHighlight
+            onPress={() => {
+              if (this.state.status !== 'DENIED') {
+                GoogleAnalytics.trackEvent('user-action', 'take-photo');
+                const that = this;
+                this.camera.capture()
+                  .then((data) => {
+                    console.log(data);
+                    that.uploadImage(data.path);
+                    that.setState({ url: data.path });
+                  })
+                  .catch(err => console.error(err));
+                this.setState({ status: 'UPLOADING' });
+              } else {
+                this.requestPermission();
+              }
+            }}
+            underlayColor="#E0E0E0"
+          >
+            <View style={styles.body}>
+              <Camera
+                ref={(cam) => {
+                  this.camera = cam;
                 }}
-                style={styles.button}
-                underlayColor="#E0E0E0"
+                style={styles.preview}
+                aspect={Camera.constants.Aspect.fill}
+                captureAudio={false}
+                captureQuality={Camera.constants.CaptureQuality.medium}
+                captureTarget={Camera.constants.CaptureTarget.temp}
+                flashMode={this.state.isFlashOn ? Camera.constants.FlashMode.on : Camera.constants.FlashMode.off}
+                type={this.state.isCameraFront ? Camera.constants.Type.front : Camera.constants.Type.back}
               >
                 <View>
-                {(() => {
-                  switch (this.state.status) {
-                    case 'DENIED': return (<Animatable.Text style={styles.text} animation="fadeIn">
-                      {'We need access to your photos.'}
-                    </Animatable.Text>);
-                    case 'BEFORE_UPLOAD': return (<Animatable.Text style={styles.text} animation="fadeIn">
-                      {'Tap me to see what I see.'}
-                    </Animatable.Text>);
-                    case 'UPLOADING': return <Spinner isVisible={true} size={20} type="Wave" color="#424242" />;
-                    case 'UPLOADED': return (<Animatable.Text style={styles.text} animation="fadeIn">
-                      {`I see ${this.state.caption}.`}
-                    </Animatable.Text>);
-                    default: return null;
-                  }
-                })()}
+                  {this.state.caption && this.state.status === 'UPLOADED' && <Animatable.View style={styles.textBox} animation="fadeIn">
+                    <Text style={styles.text}>{this.state.caption}</Text>
+                  </Animatable.View>}
+                  <View style={{ marginBottom: 30, justifyContent: 'space-between', alignItems: 'center', flexDirection: 'row' }}>
+                    <Icon
+                      name={this.state.isFlashOn ? 'flash-on' : 'flash-off'}
+                      style={styles.cameraOptionIcon}
+                      size={26}
+                      color="white"
+                      onPress={() => this.setState({ isFlashOn: !this.state.isFlashOn })}
+                    />
+                    <Icon name="camera" style={styles.icon} size={72} color="white" />
+                    <Icon
+                      name={this.state.isCameraFront ? 'camera-front' : 'camera-rear'}
+                      style={styles.cameraOptionIcon}
+                      size={26}
+                      color="white"
+                      onPress={() => this.setState({ isCameraFront: !this.state.isCameraFront })}
+                    />
+                  </View>
                 </View>
+              </Camera>
+              <TouchableHighlight style={styles.infoButton} onPress={() => this.setState({ mode: 'LIBRARY', status: 'BEFORE_UPLOAD' })}>
+                <Icon name="info" style={styles.icon} size={26} color="white" />
+              </TouchableHighlight>
+              <TouchableHighlight style={styles.changeModeButton} onPress={() => this.setState({ mode: 'LIBRARY', status: 'BEFORE_UPLOAD' })}>
+                <Icon name="photo-library" style={styles.icon} size={26} color="white" />
               </TouchableHighlight>
             </View>
-          </View>
+          </TouchableHighlight>
 
+          <SleekLoadingIndicator loading={this.state.status === 'UPLOADING'} />
           <AdmobCell />
         </View>
       );
