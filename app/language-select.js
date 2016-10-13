@@ -523,6 +523,7 @@ export default class LanguageSelectView extends Component {
                   onPress={() => {
                     that.setState({ language: item.language });
                     store.save('language', item.language);
+                    GoogleAnalytics.trackEvent('user-action', 'select-language', { label: item.language });
                   }}
                 />
               ))

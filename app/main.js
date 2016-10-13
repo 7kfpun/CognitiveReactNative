@@ -443,7 +443,7 @@ export default class Cognitive extends React.Component {
                   }
                 }}
               >
-                <View style={{ marginBottom: 30, justifyContent: 'center', alignItems: 'center', flexDirection: 'row' }}>
+                <View style={{ marginBottom: 42, justifyContent: 'center', alignItems: 'center', flexDirection: 'row' }}>
                   <Icon name="touch-app" style={styles.icon} size={72} color="white" />
                 </View>
               </TouchableHighlight>

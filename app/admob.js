@@ -22,8 +22,7 @@ const styles = StyleSheet.create({
 function AdmobCell(props) {
   return (
     <View style={[styles.container, { margin: props.margin }]}>
-      {Platform.OS === 'ios' && <AdMobBanner bannerSize={props.bannerSize} adUnitID={settings.admob.ios.banner} />}
-      {Platform.OS === 'android' && <AdMobBanner bannerSize={props.bannerSize} adUnitID={settings.admob.android.banner} />}
+      <AdMobBanner bannerSize={props.bannerSize} adUnitID={settings.admob[Platform.OS].banner} />
     </View>
   );
 }
