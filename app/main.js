@@ -153,39 +153,39 @@ export default class Cognitive extends React.Component {
     };
   }
 
-  getPhotos() {
-    try {
-      const that = this;
-      CameraRoll.getPhotos({
-        first: 2000,
-        assetType: 'Photos',
-      }).then((data) => {
-        const media = [];
-        data.edges.forEach(d => media.push({
-          uri: d.node.image.uri,
-          height: d.node.image.height,
-          width: d.node.image.width,
-          location: d.node.location,
-        }));
+  componentDidMount() {
+    const that = this;
+    store.get('language').then(language => that.setState({ language }));
 
-        that.setState({
-          media,
-          key: Math.random(),
-          dataSource: this.state.dataSource.cloneWithRows(media),
-        });
-      }).catch((error) => {
-        console.log('CameraRoll', error);
-        that.alertPermission('photo');
+    Speech.supportedVoices()
+      .then((locales) => {
+        console.log(locales);
       });
-    } catch (err) {
-      Alert.alert(
-        'Cannot access your camera?',
-        'We need access so you can use the function.',
-        [
-          { text: 'Ok', onPress: () => console.log(), style: 'cancel' },
-        ]
-      );
-    }
+  }
+
+  getPhotos() {
+    const that = this;
+    CameraRoll.getPhotos({
+      first: 2000,
+      assetType: 'Photos',
+    }).then((data) => {
+      const media = [];
+      data.edges.forEach(d => media.push({
+        uri: d.node.image.uri,
+        height: d.node.image.height,
+        width: d.node.image.width,
+        location: d.node.location,
+      }));
+
+      that.setState({
+        media,
+        key: Math.random(),
+        dataSource: this.state.dataSource.cloneWithRows(media),
+      });
+    }).catch((error) => {
+      console.log('CameraRoll', error);
+      that.alertPermission('photo');
+    });
   }
 
   alertPermission(permissionType) {
@@ -235,7 +235,7 @@ export default class Cognitive extends React.Component {
     const options = Object.assign(config.s3, { keyPrefix: `uploads/${uniqueID}/` });
     const that = this;
 
-    ImageResizer.createResizedImage(uri, 400, 400, 'JPEG', 30).then((resizedImageUri) => {
+    ImageResizer.createResizedImage(uri, 400, 400, 'JPEG', 40).then((resizedImageUri) => {
       console.log('resizedImageUri', resizedImageUri);
       file.uri = resizedImageUri;
 
@@ -289,7 +289,12 @@ export default class Cognitive extends React.Component {
       console.log('Cognitive analytics', json);
       if (json.description && json.description.captions && json.description.captions.length > 0) {
         const caption = json.description.captions[0].text;
-        that.checkTranslate(caption);
+        const tags = json.description.tags;
+
+        store.get('language').then((language) => {
+          that.setState({ language, caption, tags });
+          that.checkTranslate(caption, language);
+        });
 
         firebase.database().ref(`users/${uniqueID}/${filename}/describe`).set(json);
 
@@ -306,50 +311,45 @@ export default class Cognitive extends React.Component {
     });
   }
 
-  checkTranslate(text) {
+  read(text, language) {
+    if (Platform.OS === 'ios') {
+      Speech.speak({
+        text,
+        voice: language || 'en-US',
+        rate: 0.5,
+      });
+    }
+  }
+
+  checkTranslate(text, language) {
     // curl "https://www.googleapis.com/language/translate/v2?key=${config.googleTranslate}&q=hello%20world&source=en&target=zh"
     const that = this;
-    store.get('language')
-      .then((language) => {
-        if (language && language !== 'en') {
-          fetch(`https://www.googleapis.com/language/translate/v2?key=${config.googleTranslate}&q=${text.replace(/ /g, '%20')}&source=en&target=${language}`, {  // eslint-disable-line no-undef
-            method: 'GET',
-          })
-          .then(response => response.json())
-          .then((json) => {
-            console.log(json);
-            if (json.data && json.data.translations) {
-              that.setState({
-                caption: json.data.translations[0].translatedText,
-                status: 'UPLOADED',
-              });
-
-              if (Platform.OS === 'ios') {
-                Speech.speak({
-                  text: json.data.translations[0].translatedText,
-                  voice: language,
-                  rate: 0.5,
-                });
-              }
-            }
-          });
-        } else {
+    if (language && language !== 'en') {
+      fetch(`https://www.googleapis.com/language/translate/v2?key=${config.googleTranslate}&q=${text.replace(/ /g, '%20')}&source=en&target=${language}`, {  // eslint-disable-line no-undef
+        method: 'GET',
+      })
+      .then(response => response.json())
+      .then((json) => {
+        console.log('Google translate', json);
+        if (json.data && json.data.translations) {
           that.setState({
-            caption: text,
+            caption: json.data.translations[0].translatedText,
             status: 'UPLOADED',
           });
 
-          if (Platform.OS === 'ios') {
-            Speech.speak({
-              text,
-              voice: 'en-US',
-              rate: 0.5,
-            });
-          }
+          that.read(json.data.translations[0].translatedText, language);
         }
-
-        Vibration.vibrate();
       });
+    } else {
+      this.setState({
+        caption: text,
+        status: 'UPLOADED',
+      });
+
+      this.read(text, 'en-US');
+    }
+
+    Vibration.vibrate();
   }
 
   shareImage(url, message) {
@@ -364,7 +364,6 @@ export default class Cognitive extends React.Component {
 
   render() {
     GoogleAnalytics.trackScreenView('Home');
-    const that = this;
     if (this.state.mode === 'LIBRARY') {
       return (
         <View style={styles.container}>
@@ -408,6 +407,7 @@ export default class Cognitive extends React.Component {
             <View style={styles.uploadImageBlock}>
               {this.state.caption && this.state.status === 'UPLOADED' && <Animatable.View style={styles.textBox} animation="fadeIn">
                 <Text style={styles.text}>{this.state.caption}</Text>
+                <Icon name="volume-up" style={[styles.icon, { position: 'absolute', right: 10 }]} size={26} color="white" onPress={() => this.read(this.state.caption, this.state.language)} />
               </Animatable.View>}
               <TouchableHighlight
                 onPress={() => {
@@ -439,6 +439,7 @@ export default class Cognitive extends React.Component {
         <View style={styles.container}>
           <TouchableHighlight
             onPress={() => {
+              const that = this;
               Permissions.requestPermission('camera')
                 .then((permission) => {
                   console.log('permission', permission);
@@ -475,6 +476,7 @@ export default class Cognitive extends React.Component {
                 <View>
                   {this.state.caption && this.state.status === 'UPLOADED' && <Animatable.View style={styles.textBox} animation="fadeIn">
                     <Text style={styles.text}>{this.state.caption}</Text>
+                    <Icon name="volume-up" style={[styles.icon, { position: 'absolute', right: 10 }]} size={26} color="white" onPress={() => this.read(this.state.caption, this.state.language)} />
                   </Animatable.View>}
                   <View style={{ marginBottom: 30, justifyContent: 'space-between', alignItems: 'center', flexDirection: 'row' }}>
                     <Icon
