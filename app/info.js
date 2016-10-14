@@ -113,7 +113,7 @@ export default class InfoView extends Component {
                 cellStyle="Basic"
                 title={'Feedback'}
                 onPress={() => {
-                  this.onShareApp();
+                  Linking.openURL('https://goo.gl/forms/aAVQIGvRbyBTAGSj1');
                   GoogleAnalytics.trackEvent('user-action', 'feedback');
                 }}
               />
@@ -155,7 +155,7 @@ export default class InfoView extends Component {
             </Section>
           </TableView>
 
-          <AdmobCell bannerSize="mediumRectangle" />
+          <AdmobCell bannerSize="mediumRectangle" margin={20} />
         </ScrollView>
       </View>
     );

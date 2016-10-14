@@ -27,7 +27,7 @@ if (DeviceInfo.getDeviceName() === 'iPhone Simulator' || DeviceInfo.getDeviceNam
 const scenes = Actions.create(
   <Scene key="root">
     <Scene key="main" component={MainView} hideNavBar={true} initial={true} />
-    <Scene key="info" title={'Info'} component={InfoView} direction="vertical" />
+    <Scene key="info" title={'Info'} component={InfoView} direction="vertical" panHandlers={null} />
     <Scene key="languageSelect" title={'Select Language'} component={LanguageSelectView} />
   </Scene>
 );

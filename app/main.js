@@ -23,13 +23,14 @@ import Camera from 'react-native-camera';
 import DeviceInfo from 'react-native-device-info';
 import GoogleAnalytics from 'react-native-google-analytics-bridge';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import ImageResizer from 'react-native-image-resizer';  // eslint-disable-line import/no-unresolved
+import ImageResizer from 'react-native-image-resizer';  // eslint-disable-line import/no-unresolved,import/extensions
+import Ionicon from 'react-native-vector-icons/Ionicons';
 import Permissions from 'react-native-permissions';  // eslint-disable-line import/no-unresolved
 import Share from 'react-native-share';
 import SleekLoadingIndicator from 'react-native-sleek-loading-indicator';
 import Speech from 'react-native-speech';
-import timer from 'react-native-timer';
 import store from 'react-native-simple-store';
+import timer from 'react-native-timer';
 
 // Components
 import AdmobCell from './admob';
@@ -152,29 +153,11 @@ export default class Cognitive extends React.Component {
     };
   }
 
-  componentDidMount() {
-    if (Platform.OS === 'ios') {
-      Permissions.getPermissionStatus('photo')
-        .then((response) => {
-          // response is one of: 'authorized', 'denied', 'restricted', or 'undetermined'
-          console.log('Photo permission status', response);
-          if (response !== 'authorized' && response !== 'undetermined') {
-            this.setState({ status: 'DENIED' });
-            this.requestPermission();
-          } else {
-            this.getPhotos();
-          }
-        });
-    } else {
-      this.getPhotos();
-    }
-  }
-
   getPhotos() {
     try {
       const that = this;
       CameraRoll.getPhotos({
-        first: 100,
+        first: 1000,
         assetType: 'Photos',
       }).then((data) => {
         const media = [];
@@ -190,7 +173,10 @@ export default class Cognitive extends React.Component {
           key: Math.random(),
           dataSource: this.state.dataSource.cloneWithRows(media),
         });
-      }).catch(error => console.error(error));
+      }).catch((error) => {
+        console.log('CameraRoll', error);
+        that.alertPermission('photo');
+      });
     } catch (err) {
       Alert.alert(
         'Cannot access your camera?',
@@ -202,10 +188,20 @@ export default class Cognitive extends React.Component {
     }
   }
 
-  requestPermission() {
+  alertPermission(permissionType) {
+    let title;
+    let message;
+    if (permissionType === 'photo') {
+      title = 'Can we access your photos?';
+      message = 'We need access so you can get your picture.';
+    } else {
+      title = 'Can we access your camera?';
+      message = 'We need access so you can take a photo.';
+    }
+
     Alert.alert(
-      'Can we access your photos?',
-      'We need access so you can use the function.',
+      title,
+      message,
       [
         { text: 'No way', onPress: () => console.log('permission denied'), style: 'cancel' },
         { text: 'Open Settings', onPress: Permissions.openSettings },
@@ -280,7 +276,6 @@ export default class Cognitive extends React.Component {
       s3Url = `${s3Bucket}/uploads/${uniqueID}/${filename}.png`;
     }
 
-    // ToastAndroid.show('Cognitive started', ToastAndroid.SHORT);
     const that = this;
     fetch(`https://api.projectoxford.ai/vision/v1.0/${service}`, {  // eslint-disable-line no-undef
       method: 'POST',
@@ -293,27 +288,9 @@ export default class Cognitive extends React.Component {
     .then((json) => {
       console.log('Cognitive analytics', json);
       if (json.description && json.description.captions && json.description.captions.length > 0) {
-        // Alert.alert(
-        //   service.toUpperCase(),
-        //   JSON.stringify(json),
-        //   [{ text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel' }]
-        // );
         const caption = json.description.captions[0].text;
         that.checkTranslate(caption);
-        // that.setState({
-        //   caption,
-        //   status: 'UPLOADED',
-        // });
 
-        // if (Platform.OS === 'ios') {
-        //   Speech.speak({
-        //     text: caption,
-        //     voice: 'en-US',
-        //     rate: 0.5,
-        //   });
-        // }
-
-        // Vibration.vibrate();
         firebase.database().ref(`users/${uniqueID}/${filename}/describe`).set(json);
 
         firebase.database().ref(`app/img/${filename}/timestamp`).set(new Date().getTime());
@@ -321,7 +298,6 @@ export default class Cognitive extends React.Component {
         firebase.database().ref(`app/describe/${filename}`).set(json);
       } else {
         console.log('RetryCognitiveService in 2 second.');
-        // ToastAndroid.show('Cognitive retry', ToastAndroid.SHORT);
         timer.setTimeout(that, 'RetryCognitiveService', () => that.uploadImage(uri), 2000);
       }
     })
@@ -375,6 +351,7 @@ export default class Cognitive extends React.Component {
         Vibration.vibrate();
       });
   }
+
   shareImage(url, message) {
     const shareImageBase64 = {
       url,
@@ -387,7 +364,10 @@ export default class Cognitive extends React.Component {
 
   render() {
     GoogleAnalytics.trackScreenView('Home');
+    const that = this;
     if (this.state.mode === 'LIBRARY') {
+      this.getPhotos();
+
       return (
         <View style={styles.container}>
           <View style={styles.body}>
@@ -433,17 +413,17 @@ export default class Cognitive extends React.Component {
               </Animatable.View>}
               <TouchableHighlight
                 onPress={() => {
-                  if (this.state.status !== 'DENIED') {
+                  try {
                     this.scrollView.scrollTo({ x: width * this.state.currentSection });
-                    GoogleAnalytics.trackEvent('user-action', 'describe');
                     this.uploadImage(this.state.media[this.state.currentSection].uri);
                     this.setState({ status: 'UPLOADING' });
-                  } else {
-                    this.requestPermission();
+                    GoogleAnalytics.trackEvent('user-action', 'describe');
+                  } catch (err) {
+                    this.alertPermission('photo');
                   }
                 }}
               >
-                <View style={{ marginBottom: 42, justifyContent: 'center', alignItems: 'center', flexDirection: 'row' }}>
+                <View style={{ marginBottom: 52, justifyContent: 'center', alignItems: 'center', flexDirection: 'row' }}>
                   <Icon name="touch-app" style={styles.icon} size={72} color="white" />
                 </View>
               </TouchableHighlight>
@@ -460,20 +440,23 @@ export default class Cognitive extends React.Component {
         <View style={styles.container}>
           <TouchableHighlight
             onPress={() => {
-              if (this.state.status !== 'DENIED') {
-                GoogleAnalytics.trackEvent('user-action', 'take-photo');
-                const that = this;
-                this.camera.capture()
-                  .then((data) => {
-                    console.log(data);
-                    that.uploadImage(data.path);
-                    that.setState({ url: data.path });
-                  })
-                  .catch(err => console.error(err));
-                this.setState({ status: 'UPLOADING' });
-              } else {
-                this.requestPermission();
-              }
+              Permissions.requestPermission('camera')
+                .then((permission) => {
+                  console.log('permission', permission);
+                  if (permission === 'authorized') {
+                    this.camera.capture()
+                      .then((data) => {
+                        console.log(data);
+                        that.uploadImage(data.path);
+                        that.setState({ url: data.path });
+                      })
+                      .catch(err => console.error(err));
+                    this.setState({ status: 'UPLOADING' });
+                    GoogleAnalytics.trackEvent('user-action', 'take-photo');
+                  } else {
+                    this.alertPermission('camera');
+                  }
+                });
             }}
             underlayColor="#E0E0E0"
           >
@@ -485,7 +468,7 @@ export default class Cognitive extends React.Component {
                 style={styles.preview}
                 aspect={Camera.constants.Aspect.fill}
                 captureAudio={false}
-                captureQuality={Camera.constants.CaptureQuality.medium}
+                captureQuality={Camera.constants.CaptureQuality.low}
                 captureTarget={Camera.constants.CaptureTarget.temp}
                 flashMode={this.state.isFlashOn ? Camera.constants.FlashMode.on : Camera.constants.FlashMode.off}
                 type={this.state.isCameraFront ? Camera.constants.Type.front : Camera.constants.Type.back}
@@ -503,13 +486,20 @@ export default class Cognitive extends React.Component {
                       onPress={() => this.setState({ isFlashOn: !this.state.isFlashOn })}
                     />
                     <Icon name="camera" style={styles.icon} size={72} color="white" />
-                    <Icon
+                    {Platform.OS === 'android' && <Icon
                       name={this.state.isCameraFront ? 'camera-front' : 'camera-rear'}
                       style={styles.cameraOptionIcon}
                       size={26}
                       color="white"
                       onPress={() => this.setState({ isCameraFront: !this.state.isCameraFront })}
-                    />
+                    />}
+                    {Platform.OS === 'ios' && <Ionicon
+                      name="ios-reverse-camera-outline"
+                      style={styles.cameraOptionIcon}
+                      size={42}
+                      color="white"
+                      onPress={() => this.setState({ isCameraFront: !this.state.isCameraFront })}
+                    />}
                   </View>
                 </View>
               </Camera>
