@@ -157,7 +157,7 @@ export default class Cognitive extends React.Component {
     try {
       const that = this;
       CameraRoll.getPhotos({
-        first: 1000,
+        first: 2000,
         assetType: 'Photos',
       }).then((data) => {
         const media = [];
@@ -167,7 +167,7 @@ export default class Cognitive extends React.Component {
           width: d.node.image.width,
           location: d.node.location,
         }));
-        console.log(media.slice(0, 3));
+
         that.setState({
           media,
           key: Math.random(),
@@ -366,8 +366,6 @@ export default class Cognitive extends React.Component {
     GoogleAnalytics.trackScreenView('Home');
     const that = this;
     if (this.state.mode === 'LIBRARY') {
-      this.getPhotos();
-
       return (
         <View style={styles.container}>
           <View style={styles.body}>
@@ -422,6 +420,7 @@ export default class Cognitive extends React.Component {
                     this.alertPermission('photo');
                   }
                 }}
+                underlayColor="transparent"
               >
                 <View style={{ marginBottom: 52, justifyContent: 'center', alignItems: 'center', flexDirection: 'row' }}>
                   <Icon name="touch-app" style={styles.icon} size={72} color="white" />
@@ -506,7 +505,13 @@ export default class Cognitive extends React.Component {
               <TouchableHighlight style={styles.infoButton} onPress={Actions.info}>
                 <Icon name="info" style={styles.icon} size={26} color="white" />
               </TouchableHighlight>
-              <TouchableHighlight style={styles.changeModeButton} onPress={() => this.setState({ mode: 'LIBRARY', status: 'BEFORE_UPLOAD' })}>
+              <TouchableHighlight
+                style={styles.changeModeButton}
+                onPress={() => {
+                  this.setState({ mode: 'LIBRARY', status: 'BEFORE_UPLOAD' });
+                  this.getPhotos();
+                }}
+              >
                 <Icon name="photo-library" style={styles.icon} size={26} color="white" />
               </TouchableHighlight>
             </View>
