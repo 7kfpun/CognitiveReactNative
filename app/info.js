@@ -95,7 +95,7 @@ export default class InfoView extends Component {
         {this.renderToolbar()}
         <ScrollView>
           <TableView>
-            <Section header={'Info'}>
+            <Section>
               <Cell
                 cellStyle="RightDetail"
                 title={'Version'}
@@ -104,25 +104,21 @@ export default class InfoView extends Component {
               <Cell
                 cellStyle="Basic"
                 title={'Language Settings'}
+                accessory="DisclosureIndicator"
                 onPress={() => {
                   Actions.languageSelect();
                   GoogleAnalytics.trackEvent('user-action', 'language-setting');
                 }}
               />
+            </Section>
+
+            <Section header={'Others'}>
               <Cell
                 cellStyle="Basic"
                 title={'Feedback'}
                 onPress={() => {
                   Linking.openURL('https://goo.gl/forms/aAVQIGvRbyBTAGSj1');
                   GoogleAnalytics.trackEvent('user-action', 'feedback');
-                }}
-              />
-              <Cell
-                cellStyle="Basic"
-                title={'Share this cool app!'}
-                onPress={() => {
-                  this.onShareApp();
-                  GoogleAnalytics.trackEvent('user-action', 'share-app');
                 }}
               />
               <Cell
@@ -137,9 +133,14 @@ export default class InfoView extends Component {
                   GoogleAnalytics.trackEvent('user-action', 'open-url', { label: 'rate-us' });
                 }}
               />
-            </Section>
-
-            <Section header={'Others'}>
+              <Cell
+                cellStyle="Basic"
+                title={'Share this cool app!'}
+                onPress={() => {
+                  this.onShareApp();
+                  GoogleAnalytics.trackEvent('user-action', 'share-app');
+                }}
+              />
               <Cell
                 cellStyle="Basic"
                 title={'View more by this developer'}
@@ -155,7 +156,7 @@ export default class InfoView extends Component {
             </Section>
           </TableView>
 
-          <AdmobCell bannerSize="mediumRectangle" margin={20} />
+          <AdmobCell bannerSize="mediumRectangle" />
         </ScrollView>
       </View>
     );

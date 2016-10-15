@@ -8,11 +8,17 @@ import {
 
 // 3rd party libraries
 import { Actions } from 'react-native-router-flux';
+import { AdMobInterstitial } from 'react-native-admob';
 import { List, ListItem } from 'react-native-elements';
 import GoogleAnalytics from 'react-native-google-analytics-bridge';
 import Icon from 'react-native-vector-icons/Ionicons';
 import NavigationBar from 'react-native-navbar';
 import store from 'react-native-simple-store';
+
+// Component
+import AdmobCell from './admob';
+
+import { config } from '../config';
 
 const styles = StyleSheet.create({
   container: {
@@ -478,6 +484,12 @@ export default class LanguageSelectView extends Component {
         that.setState({ language });
       });
   }
+
+  showAdInterstitial() {
+    AdMobInterstitial.setAdUnitID(config.admob[Platform.OS].interstital);
+    AdMobInterstitial.requestAd(() => AdMobInterstitial.showAd(error => error && console.log('AdMobInterstitial', error)));
+  }
+
   renderToolbar() {
     if (Platform.OS === 'ios') {
       return (
@@ -488,7 +500,7 @@ export default class LanguageSelectView extends Component {
           rightButton={{
             title: 'Close',
             tintColor: '#69BBFF',
-            handler: Actions.pop,
+            handler: () => { Actions.pop(); this.showAdInterstitial(); },
           }}
         />
       );
@@ -530,6 +542,8 @@ export default class LanguageSelectView extends Component {
             }
           </List>
         </ScrollView>
+
+        <AdmobCell />
       </View>
     );
   }

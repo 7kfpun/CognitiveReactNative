@@ -9,7 +9,6 @@ import {
   StyleSheet,
   Text,
   TouchableHighlight,
-  Vibration,
   View,
 } from 'react-native';
 
@@ -86,6 +85,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: 'center',
   },
+  smallText: {
+    color: '#9E9E9E',
+    fontSize: 11,
+    textAlign: 'center',
+  },
   changeModeButton: {
     position: 'absolute',
     right: 20,
@@ -141,15 +145,14 @@ export default class Cognitive extends React.Component {
     super(props);
 
     this.state = {
-      // mode: 'LIBRARY',
       mode: 'CAMERA',
       isFlashOn: false,
       isCameraFront: false,
-      key: Math.random(),
       dataSource: new ListView.DataSource({ rowHasChanged: (row1, row2) => row1 !== row2 }),
       status: 'BEFORE_UPLOAD',
       caption: null,
       currentSection: 0,
+      isCameraRollLoaded: false,
     };
   }
 
@@ -164,9 +167,16 @@ export default class Cognitive extends React.Component {
   }
 
   getPhotos() {
+    if (!this.state.isCameraRollLoaded) {
+      this.setState({
+        status: 'LOADING',
+        isCameraRollLoaded: true,
+      });
+    }
+
     const that = this;
     CameraRoll.getPhotos({
-      first: 2000,
+      first: 1000,
       assetType: 'Photos',
     }).then((data) => {
       const media = [];
@@ -181,6 +191,7 @@ export default class Cognitive extends React.Component {
         media,
         key: Math.random(),
         dataSource: this.state.dataSource.cloneWithRows(media),
+        status: 'BEFORE_UPLOAD',
       });
     }).catch((error) => {
       console.log('CameraRoll', error);
@@ -289,10 +300,11 @@ export default class Cognitive extends React.Component {
       console.log('Cognitive analytics', json);
       if (json.description && json.description.captions && json.description.captions.length > 0) {
         const caption = json.description.captions[0].text;
+        const confidence = json.description.captions[0].confidence;
         const tags = json.description.tags;
 
         store.get('language').then((language) => {
-          that.setState({ language, caption, tags });
+          that.setState({ language, caption, confidence, tags });
           that.checkTranslate(caption, language);
         });
 
@@ -348,8 +360,6 @@ export default class Cognitive extends React.Component {
 
       this.read(text, 'en-US');
     }
-
-    Vibration.vibrate();
   }
 
   shareImage(url, message) {
@@ -406,7 +416,7 @@ export default class Cognitive extends React.Component {
 
             <View style={styles.uploadImageBlock}>
               {this.state.caption && this.state.status === 'UPLOADED' && <Animatable.View style={styles.textBox} animation="fadeIn">
-                <Text style={styles.text}>{this.state.caption}</Text>
+                <Text style={styles.text}>{this.state.caption} <Text style={styles.smallText}>{`(${Math.round(this.state.confidence * 100)}%)`}</Text></Text>
                 <Icon name="volume-up" style={[styles.icon, { position: 'absolute', right: 10 }]} size={26} color="white" onPress={() => this.read(this.state.caption, this.state.language)} />
               </Animatable.View>}
               <TouchableHighlight
@@ -429,7 +439,7 @@ export default class Cognitive extends React.Component {
             </View>
           </View>
 
-          <SleekLoadingIndicator text={`${this.state.status}...`} loading={this.state.status === 'UPLOADING' || this.state.status === 'ANALYZING'} />
+          <SleekLoadingIndicator text={`${this.state.status}...`} loading={this.state.status === 'LOADING' || this.state.status === 'UPLOADING' || this.state.status === 'ANALYZING'} />
 
           <AdmobCell />
         </View>
@@ -468,14 +478,14 @@ export default class Cognitive extends React.Component {
                 style={styles.preview}
                 aspect={Camera.constants.Aspect.fill}
                 captureAudio={false}
-                captureQuality={Camera.constants.CaptureQuality.low}
+                captureQuality={Camera.constants.CaptureQuality.medium}
                 captureTarget={Camera.constants.CaptureTarget.temp}
                 flashMode={this.state.isFlashOn ? Camera.constants.FlashMode.on : Camera.constants.FlashMode.off}
                 type={this.state.isCameraFront ? Camera.constants.Type.front : Camera.constants.Type.back}
               >
                 <View>
                   {this.state.caption && this.state.status === 'UPLOADED' && <Animatable.View style={styles.textBox} animation="fadeIn">
-                    <Text style={styles.text}>{this.state.caption}</Text>
+                    <Text style={styles.text}>{this.state.caption} <Text style={styles.smallText}>{`(${Math.round(this.state.confidence * 100)}%)`}</Text></Text>
                     <Icon name="volume-up" style={[styles.icon, { position: 'absolute', right: 10 }]} size={26} color="white" onPress={() => this.read(this.state.caption, this.state.language)} />
                   </Animatable.View>}
                   <View style={{ marginBottom: 30, justifyContent: 'space-between', alignItems: 'center', flexDirection: 'row' }}>
@@ -519,7 +529,7 @@ export default class Cognitive extends React.Component {
             </View>
           </TouchableHighlight>
 
-          <SleekLoadingIndicator text={`${this.state.status}...`} loading={this.state.status === 'UPLOADING' || this.state.status === 'ANALYZING'} />
+          <SleekLoadingIndicator text={`${this.state.status}...`} loading={this.state.status === 'LOADING' || this.state.status === 'UPLOADING' || this.state.status === 'ANALYZING'} />
           <AdmobCell />
         </View>
       );

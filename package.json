@@ -11,7 +11,7 @@
     "say-done": "osascript -e 'display notification \"DONE!\" with title \"Android built\"'"
   },
   "dependencies": {
-    "firebase": "^3.4.1",
+    "firebase": "^3.5.0",
     "react": "15.3.1",
     "react-native": "0.35.0",
     "react-native-admob": "^1.1.5",
@@ -34,7 +34,7 @@
     "react-native-vector-icons": "^2.1.0"
   },
   "devDependencies": {
-    "eslint": "^3.7.1",
+    "eslint": "^3.8.0",
     "eslint-config-airbnb": "^12.0.0",
     "eslint-plugin-import": "^2.0.0",
     "eslint-plugin-jsx-a11y": "^2.2.3",
