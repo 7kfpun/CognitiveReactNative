@@ -6,6 +6,7 @@ import {
 
 // 3rd party libraries
 import { Actions, Router, Scene } from 'react-native-router-flux';
+import { AdMobInterstitial } from 'react-native-admob';
 import DeviceInfo from 'react-native-device-info';
 import GoogleAnalytics from 'react-native-google-analytics-bridge';
 // import store from 'react-native-simple-store';
@@ -17,6 +18,7 @@ import LanguageSelectView from './app/language-select';
 
 import { config } from './config';
 
+AdMobInterstitial.setAdUnitID(config.admob[Platform.OS].interstital);
 GoogleAnalytics.setTrackerId(config.googleAnalytics[Platform.OS]);
 
 if (DeviceInfo.getDeviceName() === 'iPhone Simulator' || DeviceInfo.getDeviceName() === 'apple’s MacBook Pro' || DeviceInfo.getManufacturer() === 'Genymotion') {

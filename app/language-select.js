@@ -18,8 +18,6 @@ import store from 'react-native-simple-store';
 // Component
 import AdmobCell from './admob';
 
-import { config } from '../config';
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -486,7 +484,6 @@ export default class LanguageSelectView extends Component {
   }
 
   showAdInterstitial() {
-    AdMobInterstitial.setAdUnitID(config.admob[Platform.OS].interstital);
     AdMobInterstitial.requestAd(() => AdMobInterstitial.showAd(error => error && console.log('AdMobInterstitial', error)));
   }
 
