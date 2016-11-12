@@ -246,7 +246,7 @@ export default class Cognitive extends React.Component {
     const options = Object.assign(config.s3, { keyPrefix: `uploads/${uniqueID}/` });
     const that = this;
 
-    ImageResizer.createResizedImage(uri, 400, 400, 'JPEG', 40).then((resizedImageUri) => {
+    ImageResizer.createResizedImage(uri, 400, 400, 'JPEG', 30).then((resizedImageUri) => {
       console.log('resizedImageUri', resizedImageUri);
       file.uri = resizedImageUri;
 

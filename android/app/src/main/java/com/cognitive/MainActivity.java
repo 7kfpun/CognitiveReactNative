@@ -1,13 +1,6 @@
 package com.cognitive;
 
 import com.facebook.react.ReactActivity;
-import com.react.rnspinkit.RNSpinkitPackage;
-import fr.bamlab.rnimageresizer.ImageResizerPackage;
-import com.idehub.GoogleAnalyticsBridge.GoogleAnalyticsBridgePackage;
-import com.lwansbrough.RCTCamera.RCTCameraPackage;
-import com.sbugert.rnadmob.RNAdMobPackage;
-import com.oblador.vectoricons.VectorIconsPackage;
-import com.learnium.RNDeviceInfo.RNDeviceInfo;
 
 public class MainActivity extends ReactActivity {
 
