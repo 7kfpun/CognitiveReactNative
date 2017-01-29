@@ -1,4 +1,4 @@
-package com.cognitive;
+package com.kfpun.cognitive;
 
 import com.facebook.react.ReactActivity;
 
