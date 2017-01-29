@@ -16,7 +16,7 @@ import MainView from './app/main';
 import InfoView from './app/info';
 import LanguageSelectView from './app/language-select';
 
-import { config } from './config';
+import { config } from './app/config';
 
 AdMobInterstitial.setAdUnitID(config.admob[Platform.OS].interstital);
 GoogleAnalytics.setTrackerId(config.googleAnalytics[Platform.OS]);

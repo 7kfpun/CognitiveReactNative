@@ -141,18 +141,6 @@ export default class InfoView extends Component {
                   GoogleAnalytics.trackEvent('user-action', 'share-app');
                 }}
               />
-              <Cell
-                cellStyle="Basic"
-                title={'View more by this developer'}
-                onPress={() => {
-                  if (Platform.OS === 'ios') {
-                    Linking.openURL('https://itunes.apple.com/us/developer/kf-pun/id1116896894');
-                  } else if (Platform.OS === 'android') {
-                    Linking.openURL('https://play.google.com/store/apps/developer?id=Kf');
-                  }
-                  GoogleAnalytics.trackEvent('user-action', 'open-url', { label: 'more-by-developer' });
-                }}
-              />
             </Section>
           </TableView>
 

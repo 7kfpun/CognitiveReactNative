@@ -34,7 +34,7 @@ import timer from 'react-native-timer';
 // Components
 import AdmobCell from './admob';
 
-import { config } from '../config';
+import { config } from './config';
 
 GoogleAnalytics.setTrackerId(config.googleAnalytics[Platform.OS]);
 
@@ -196,6 +196,7 @@ export default class Cognitive extends React.Component {
     }).catch((error) => {
       console.log('CameraRoll', error);
       that.alertPermission('photo');
+      that.setState({ status: 'FAILED', isCameraRollLoaded: true });
     });
   }
 
@@ -226,7 +227,7 @@ export default class Cognitive extends React.Component {
     try {
       filename = /id=(.*)\&ext/i.exec(uri)[0].replace('id=', '').replace('&ext', '');  // eslint-disable-line no-useless-escape
     } catch (err) {
-      filename = uri.replace(/^.*[\\\/]/, '').replace('.jpg', '');
+      filename = uri.replace(/^.*[\\\/]/, '').replace('.jpg', '');  // eslint-disable-line no-useless-escape
     }
     if (uri.indexOf('JPG')) {  // eslint-disable-line no-constant-condition
       file = {
@@ -246,7 +247,7 @@ export default class Cognitive extends React.Component {
     const options = Object.assign(config.s3, { keyPrefix: `uploads/${uniqueID}/` });
     const that = this;
 
-    ImageResizer.createResizedImage(uri, 400, 400, 'JPEG', 30).then((resizedImageUri) => {
+    ImageResizer.createResizedImage(uri, 400, 400, 'JPEG', 40).then((resizedImageUri) => {
       console.log('resizedImageUri', resizedImageUri);
       file.uri = resizedImageUri;
 
@@ -264,7 +265,7 @@ export default class Cognitive extends React.Component {
         if (e.loaded / e.total < 1) {
           that.setState({ status: 'UPLOADING' });
         } else if (e.loaded / e.total === 1) {
-          that.cognitiveService('describe', uri);
+          timer.setTimeout(that, 'CognitiveService', () => that.cognitiveService('describe', uri), 200);
         }
       });
     }).catch((err) => {
@@ -278,7 +279,7 @@ export default class Cognitive extends React.Component {
     try {
       filename = /id=(.*)\&ext/i.exec(uri)[0].replace('id=', '').replace('&ext', '');  // eslint-disable-line no-useless-escape
     } catch (err) {
-      filename = uri.replace(/^.*[\\\/]/, '').replace('.jpg', '');
+      filename = uri.replace(/^.*[\\\/]/, '').replace('.jpg', '');  // eslint-disable-line no-useless-escape
     }
     let s3Url;
     if (uri.indexOf('JPG') || true) {  // eslint-disable-line no-constant-condition
@@ -288,7 +289,7 @@ export default class Cognitive extends React.Component {
     }
 
     const that = this;
-    fetch(`https://api.projectoxford.ai/vision/v1.0/${service}`, {  // eslint-disable-line no-undef
+    fetch(`https://westus.api.cognitive.microsoft.com/vision/v1.0/${service}`, {  // eslint-disable-line no-undef
       method: 'POST',
       headers: Object.assign({ 'Content-Type': 'application/json' }, config.cognitive),
       body: JSON.stringify({
@@ -314,7 +315,7 @@ export default class Cognitive extends React.Component {
         firebase.database().ref(`app/img/${filename}/uniqueID`).set(uniqueID);
         firebase.database().ref(`app/describe/${filename}`).set(json);
       } else {
-        console.log('RetryCognitiveService in 2 second.');
+        console.log('RetryCognitiveService in 2 seconds.');
         timer.setTimeout(that, 'RetryCognitiveService', () => that.uploadImage(uri), 2000);
       }
     })
@@ -439,8 +440,7 @@ export default class Cognitive extends React.Component {
             </View>
           </View>
 
-          <SleekLoadingIndicator text={`${this.state.status}...`} loading={this.state.status === 'LOADING' || this.state.status === 'UPLOADING' || this.state.status === 'ANALYZING'} />
-
+          <SleekLoadingIndicator text={this.state.status} loading={this.state.status === 'LOADING' || this.state.status === 'UPLOADING' || this.state.status === 'ANALYZING'} />
           <AdmobCell />
         </View>
       );
@@ -478,7 +478,7 @@ export default class Cognitive extends React.Component {
                 style={styles.preview}
                 aspect={Camera.constants.Aspect.fill}
                 captureAudio={false}
-                captureQuality={Camera.constants.CaptureQuality.medium}
+                captureQuality={Camera.constants.CaptureQuality.high}
                 captureTarget={Camera.constants.CaptureTarget.temp}
                 flashMode={this.state.isFlashOn ? Camera.constants.FlashMode.on : Camera.constants.FlashMode.off}
                 type={this.state.isCameraFront ? Camera.constants.Type.front : Camera.constants.Type.back}
@@ -529,7 +529,7 @@ export default class Cognitive extends React.Component {
             </View>
           </TouchableHighlight>
 
-          <SleekLoadingIndicator text={`${this.state.status}...`} loading={this.state.status === 'LOADING' || this.state.status === 'UPLOADING' || this.state.status === 'ANALYZING'} />
+          <SleekLoadingIndicator text={this.state.status} loading={this.state.status === 'LOADING' || this.state.status === 'UPLOADING' || this.state.status === 'ANALYZING'} />
           <AdmobCell />
         </View>
       );
